@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .field {
+        @apply block w-full rounded-lg border-slate-300 text-slate-900 shadow-sm focus:border-red-600 focus:ring-red-600;
+    }
+}
