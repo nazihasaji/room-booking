@@ -121,25 +121,25 @@ export default function Index({ bookings, rooms, filters, statuses }: BookingMan
     }
 
     return (
-        <main className="min-h-screen bg-slate-50 text-slate-950">
+        <main className="min-h-screen bg-base-200 text-base-content">
             <Head title="Booking management" />
             <div className="mx-auto max-w-[1700px] px-4 py-6 sm:px-6 lg:px-8">
-                <header className="border-b border-slate-200 pb-6">
-                    <div><p className="text-sm font-semibold uppercase tracking-[0.2em] text-red-700">Room Reserve</p><h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Booking management</h1><p className="mt-2 max-w-2xl text-slate-600">Private booking details are visible only to super administrators.</p></div>
+                <header className="border-b border-base-300 pb-6">
+                    <div><p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Room Reserve</p><h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Booking management</h1><p className="mt-2 max-w-2xl text-base-content/65">Private booking details are visible only to super administrators.</p></div>
                 </header>
-                <section className="mt-7 rounded-2xl border border-slate-200 bg-white shadow-sm">
-                    <div className="flex flex-wrap items-end gap-3 border-b border-slate-200 px-5 py-4 sm:px-6">
+                <section className="card mt-7 border border-base-300 bg-base-100 shadow-sm">
+                    <div className="card-body flex flex-wrap items-end gap-3 border-b border-base-300 px-5 py-4 sm:px-6">
                         <div className="mr-auto">
                             <h2 className="text-xl font-bold">Bookings</h2>
-                            <p className="mt-1 text-sm text-slate-600">{bookings.length} booking{bookings.length === 1 ? '' : 's'} shown · Each room has its own colour in the calendar.</p>
+                            <p className="mt-1 text-sm text-base-content/65">{bookings.length} booking{bookings.length === 1 ? '' : 's'} shown · Each room has its own colour in the calendar.</p>
                         </div>
                         <form onSubmit={applyFilters} className="flex flex-wrap items-end gap-2">
                             <label className="block w-36 text-xs font-semibold text-slate-700">Date<input type="date" value={filterValues.date} onChange={(event) => setFilterValues({ ...filterValues, date: event.target.value })} className="field mt-1 h-9 px-2 text-sm" /></label>
                             <label className="block w-52 text-xs font-semibold text-slate-700">Room<select value={filterValues.room_id} onChange={(event) => setFilterValues({ ...filterValues, room_id: event.target.value })} className="field mt-1 h-9 px-2 text-sm"><option value="">All rooms</option>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
                             <label className="block w-44 text-xs font-semibold text-slate-700">Status<select value={filterValues.status} onChange={(event) => setFilterValues({ ...filterValues, status: event.target.value })} className="field mt-1 h-9 px-2 text-sm"><option value="">All statuses</option>{statuses.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
-                            <div className="flex gap-2"><button type="submit" className="h-9 rounded-lg bg-red-700 px-3 text-sm font-bold text-white transition hover:bg-red-800">Apply</button><button type="button" onClick={clearFilters} className="h-9 rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Clear</button></div>
+                            <div className="flex gap-2"><button type="submit" className="btn btn-primary btn-sm">Apply</button><button type="button" onClick={clearFilters} className="btn btn-ghost btn-sm">Clear</button></div>
                         </form>
-                        <div className="inline-flex h-9 rounded-lg border border-slate-300 p-1" aria-label="Booking view"><button type="button" onClick={() => setActiveView('calendar')} className={`rounded-md px-3 text-sm font-semibold transition ${activeView === 'calendar' ? 'bg-red-700 text-white' : 'text-slate-700 hover:bg-slate-100'}`}>Week calendar</button><button type="button" onClick={() => setActiveView('table')} className={`rounded-md px-3 text-sm font-semibold transition ${activeView === 'table' ? 'bg-red-700 text-white' : 'text-slate-700 hover:bg-slate-100'}`}>Table</button></div>
+                        <div className="join" aria-label="Booking view"><button type="button" onClick={() => setActiveView('calendar')} className={`btn btn-sm join-item ${activeView === 'calendar' ? 'btn-primary' : 'btn-ghost'}`}>Week calendar</button><button type="button" onClick={() => setActiveView('table')} className={`btn btn-sm join-item ${activeView === 'table' ? 'btn-primary' : 'btn-ghost'}`}>Table</button></div>
                     </div>
                     {activeView === 'calendar' ? <BookingCalendar bookings={bookings} rooms={rooms} selectedDate={filters.date} onSelectBooking={setSelectedBooking} /> : <BookingTable bookings={bookings} onSelectBooking={setSelectedBooking} />}
                 </section>
