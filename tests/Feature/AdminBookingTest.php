@@ -34,7 +34,7 @@ class AdminBookingTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('Admin/Bookings/Index')
-                ->has('bookings'));
+                ->has('bookings.data'));
     }
 
     public function test_super_admins_can_see_private_booking_details(): void
@@ -54,13 +54,30 @@ class AdminBookingTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('Admin/Bookings/Index')
-                ->where('bookings.0.id', $booking->id)
-                ->where('bookings.0.visitor_name', 'Aisha Rahman')
-                ->where('bookings.0.visitor_email', 'aisha@example.test')
-                ->where('bookings.0.visitor_mobile', '+60123456789')
-                ->where('bookings.0.attendee_count', 12)
-                ->where('bookings.0.refreshment_preference', 'tea')
-                ->where('bookings.0.private_purpose', 'Quarterly planning session'));
+                ->where('bookings.data.0.id', $booking->id)
+                ->where('bookings.data.0.visitor_name', 'Aisha Rahman')
+                ->where('bookings.data.0.visitor_email', 'aisha@example.test')
+                ->where('bookings.data.0.visitor_mobile', '+60123456789')
+                ->where('bookings.data.0.attendee_count', 12)
+                ->where('bookings.data.0.refreshment_preference', 'tea')
+                ->where('bookings.data.0.private_purpose', 'Quarterly planning session'));
+    }
+
+    public function test_booking_management_paginates_the_table_with_ten_bookings_per_page(): void
+    {
+        $room = Room::factory()->create();
+        Booking::factory()->for($room)->count(11)->create();
+
+        $this->actingAs(User::factory()->superAdmin()->create())
+            ->get(route('admin.bookings.index', ['page' => 2]))
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/Bookings/Index')
+                ->where('bookings.current_page', 2)
+                ->where('bookings.per_page', 10)
+                ->where('bookings.total', 11)
+                ->has('bookings.data', 1)
+                ->has('calendarBookings', 11));
     }
 
     public function test_super_admins_are_redirected_to_booking_management_after_login(): void

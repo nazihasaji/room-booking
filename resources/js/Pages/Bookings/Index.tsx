@@ -206,7 +206,7 @@ export default function Index({ rooms, flash }: BookingPageProps) {
                 </header>
 
                 {flash?.success && (
-                    <div className="alert alert-success mb-6" role="status">
+                    <div className="alert mb-6 border border-emerald-200 bg-emerald-100 text-emerald-800" role="status">
                         {flash.success}
                     </div>
                 )}
@@ -247,7 +247,7 @@ export default function Index({ rooms, flash }: BookingPageProps) {
 
                     <section className="card border border-base-300 bg-base-100 shadow-sm"><div className="card-body p-5">
                             <h2 className="text-xl font-bold">{formatDate(new Date(`${selectedDate}T00:00:00`))}</h2>
-                            <div className="mt-3 flex items-center gap-4 text-xs font-semibold text-slate-600" aria-label="Time availability legend"><span className="inline-flex items-center gap-1.5"><span className="size-3 rounded border border-slate-300 bg-white" />Available</span><span className="inline-flex items-center gap-1.5"><span className="size-3 rounded border border-red-200 bg-red-100" />Unavailable</span></div>
+                            <div className="mt-3 flex items-center gap-4 text-xs font-semibold text-slate-600" aria-label="Time availability legend"><span className="inline-flex items-center gap-1.5"><span className="size-3 rounded border border-slate-300 bg-white" />Available</span><span className="inline-flex items-center gap-1.5"><span className="relative size-3 overflow-hidden rounded" style={{ backgroundColor: '#fee2e2', borderColor: '#fecaca' }}><svg aria-hidden="true" viewBox="0 0 12 12" preserveAspectRatio="none" className="absolute inset-0 size-full text-error"><line x1="0" y1="12" x2="12" y2="0" stroke="currentColor" strokeWidth="2" /></svg></span>Unavailable</span></div>
                             <div className="mt-5">
                                 <label htmlFor="room" className="text-sm font-semibold text-slate-700">Room</label>
                                 <select id="room" value={data.room_id} onChange={(event) => { setData('room_id', Number(event.target.value)); setData('start_time', ''); setData('end_time', ''); }} className="select select-bordered mt-2 w-full focus:select-primary">
@@ -267,7 +267,7 @@ export default function Index({ rooms, flash }: BookingPageProps) {
                                                 (availableSlot) => availableSlot.start === slot.start,
                                             );
 
-                                            return <button key={slot.start} type="button" disabled={!isAvailable} onClick={() => chooseStartTime(slot.start)} className={`btn btn-sm ${!isAvailable ? 'btn-disabled' : data.start_time === slot.start ? 'btn-primary' : 'btn-outline'}`} aria-label={`${formatTime(slot.start)}${isAvailable ? ', available' : ', unavailable'}`}>{formatTime(slot.start)}</button>;
+                                            return <button key={slot.start} type="button" disabled={!isAvailable} onClick={() => chooseStartTime(slot.start)} className={`btn btn-sm relative overflow-hidden ${!isAvailable ? 'opacity-100 disabled:opacity-100' : data.start_time === slot.start ? 'btn-primary' : 'btn-outline'}`} style={!isAvailable ? { backgroundColor: '#fee2e2', borderColor: '#fecaca', color: '#b91c1c', opacity: 1 } : undefined} aria-label={`${formatTime(slot.start)}${isAvailable ? ', available' : ', unavailable'}`}><span className="relative z-10">{formatTime(slot.start)}</span>{!isAvailable && <svg aria-hidden="true" viewBox="0 0 100 40" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 size-full text-error"><line x1="0" y1="40" x2="100" y2="0" stroke="currentColor" strokeWidth="3" /></svg>}</button>;
                                         })}
                                     </div>
                                 )}

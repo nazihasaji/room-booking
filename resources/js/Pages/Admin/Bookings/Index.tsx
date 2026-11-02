@@ -20,7 +20,8 @@ type Booking = {
 };
 type CalendarBooking = Booking & { lane: number; laneCount: number };
 type Filters = { date: string | null; room_id: string; status: string };
-type BookingManagementProps = { bookings: Booking[]; rooms: Room[]; filters: Filters; statuses: string[] };
+type BookingPaginator = { data: Booking[]; current_page: number; last_page: number; per_page: number; from: number | null; to: number | null; total: number };
+type BookingManagementProps = { bookings: BookingPaginator; calendarBookings: Booking[]; rooms: Room[]; filters: Filters; statuses: string[] };
 type RoomColour = { dot: string; booking: string };
 
 const roomColours: RoomColour[] = [
@@ -105,7 +106,7 @@ function layoutBookings(bookings: Booking[]): CalendarBooking[] {
     });
 }
 
-export default function Index({ bookings, rooms, filters, statuses }: BookingManagementProps) {
+export default function Index({ bookings, calendarBookings, rooms, filters, statuses }: BookingManagementProps) {
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
     const [activeView, setActiveView] = useState<'calendar' | 'table'>('calendar');
     const [filterValues, setFilterValues] = useState({ date: filters.date ?? '', room_id: filters.room_id, status: filters.status });
@@ -120,6 +121,15 @@ export default function Index({ bookings, rooms, filters, statuses }: BookingMan
         router.get(index.url(), {}, { preserveScroll: true, replace: true });
     }
 
+    function goToPage(page: number): void {
+        router.get(index.url(), {
+            date: filters.date ?? '',
+            room_id: filters.room_id,
+            status: filters.status,
+            page,
+        }, { preserveScroll: true, preserveState: true, replace: true });
+    }
+
     return (
         <main className="min-h-screen bg-base-200 text-base-content">
             <Head title="Booking management" />
@@ -128,10 +138,10 @@ export default function Index({ bookings, rooms, filters, statuses }: BookingMan
                     <div><p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Room Reserve</p><h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Booking management</h1><p className="mt-2 max-w-2xl text-base-content/65">Private booking details are visible only to super administrators.</p></div>
                 </header>
                 <section className="card mt-7 border border-base-300 bg-base-100 shadow-sm">
-                    <div className="card-body flex flex-wrap items-end gap-3 border-b border-base-300 px-5 py-4 sm:px-6">
+                    <div className="card-body flex flex-wrap items-end gap-3 border-b border-base-300 px-5 py-4 sm:px-6 lg:flex-row">
                         <div className="mr-auto">
                             <h2 className="text-xl font-bold">Bookings</h2>
-                            <p className="mt-1 text-sm text-base-content/65">{bookings.length} booking{bookings.length === 1 ? '' : 's'} shown · Each room has its own colour in the calendar.</p>
+                            <p className="mt-1 text-sm text-base-content/65">{bookings.total} booking{bookings.total === 1 ? '' : 's'} shown · Each room has its own colour in the calendar.</p>
                         </div>
                         <form onSubmit={applyFilters} className="flex flex-wrap items-end gap-2">
                             <label className="block w-36 text-xs font-semibold text-slate-700">Date<input type="date" value={filterValues.date} onChange={(event) => setFilterValues({ ...filterValues, date: event.target.value })} className="field mt-1 h-9 px-2 text-sm" /></label>
@@ -141,7 +151,7 @@ export default function Index({ bookings, rooms, filters, statuses }: BookingMan
                         </form>
                         <div className="join" aria-label="Booking view"><button type="button" onClick={() => setActiveView('calendar')} className={`btn btn-sm join-item ${activeView === 'calendar' ? 'btn-primary' : 'btn-ghost'}`}>Week calendar</button><button type="button" onClick={() => setActiveView('table')} className={`btn btn-sm join-item ${activeView === 'table' ? 'btn-primary' : 'btn-ghost'}`}>Table</button></div>
                     </div>
-                    {activeView === 'calendar' ? <BookingCalendar bookings={bookings} rooms={rooms} selectedDate={filters.date} onSelectBooking={setSelectedBooking} /> : <BookingTable bookings={bookings} onSelectBooking={setSelectedBooking} />}
+                    {activeView === 'calendar' ? <BookingCalendar bookings={calendarBookings} rooms={rooms} selectedDate={filters.date} onSelectBooking={setSelectedBooking} /> : <><BookingTable bookings={bookings.data} onSelectBooking={setSelectedBooking} /><Pagination bookings={bookings} onPageChange={goToPage} /></>}
                 </section>
             </div>
             {selectedBooking && <BookingDetails booking={selectedBooking} onClose={() => setSelectedBooking(null)} />}
@@ -150,8 +160,8 @@ export default function Index({ bookings, rooms, filters, statuses }: BookingMan
 }
 
 function BookingCalendar({ bookings, rooms, selectedDate, onSelectBooking }: { bookings: Booking[]; rooms: Room[]; selectedDate: string | null; onSelectBooking: (booking: Booking) => void }) {
-    const [weekStart, setWeekStart] = useState(() => startOfWeek(selectedDate ? parseDate(selectedDate) : bookings[0] ? parseDate(bookings[0].date) : new Date()));
-    useEffect(() => { if (selectedDate) setWeekStart(startOfWeek(parseDate(selectedDate))); }, [selectedDate]);
+    const [weekStart, setWeekStart] = useState(() => startOfWeek(selectedDate ? parseDate(selectedDate) : new Date()));
+    useEffect(() => { setWeekStart(startOfWeek(selectedDate ? parseDate(selectedDate) : new Date())); }, [selectedDate]);
     const days = useMemo(() => Array.from({ length: 7 }, (_, dayIndex) => addDays(weekStart, dayIndex)), [weekStart]);
     const positionedBookings = useMemo(() => layoutBookings(bookings), [bookings]);
     const today = dateKey(new Date());
@@ -175,6 +185,32 @@ function CalendarBookingBlock({ booking, rooms, onSelectBooking }: { booking: Ca
 function BookingTable({ bookings, onSelectBooking }: { bookings: Booking[]; onSelectBooking: (booking: Booking) => void }) {
     if (!bookings.length) return <p className="px-5 py-12 text-center text-slate-600 sm:px-6">No bookings match these filters.</p>;
     return <div className="overflow-x-auto"><table className="min-w-full divide-y divide-slate-200 text-left text-sm"><thead className="bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-600"><tr><th className="px-5 py-3 sm:px-6">Date & time</th><th className="px-5 py-3">Room</th><th className="px-5 py-3">Visitor</th><th className="px-5 py-3">Attendees</th><th className="px-5 py-3">Status</th><th className="px-5 py-3 sm:px-6"><span className="sr-only">Details</span></th></tr></thead><tbody className="divide-y divide-slate-200 text-slate-700">{bookings.map((booking) => <tr key={booking.id} className="hover:bg-slate-50"><td className="whitespace-nowrap px-5 py-4 font-medium sm:px-6"><p>{formatDate(booking.date)}</p><p className="mt-1 text-slate-500">{formatTime(booking.start_time)} – {formatTime(booking.end_time)}</p></td><td className="px-5 py-4">{booking.room.name}</td><td className="px-5 py-4"><p className="font-medium">{booking.visitor_name}</p><p className="mt-1 text-slate-500">{booking.visitor_email}</p></td><td className="px-5 py-4">{booking.attendee_count}</td><td className="px-5 py-4"><span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800">{booking.status}</span></td><td className="px-5 py-4 text-right sm:px-6"><button type="button" onClick={() => onSelectBooking(booking)} className="rounded-lg border border-slate-300 px-3 py-2 font-semibold text-slate-700 transition hover:border-red-300 hover:bg-red-50 hover:text-red-800">View details</button></td></tr>)}</tbody></table></div>;
+}
+
+function paginationItems(currentPage: number, lastPage: number): Array<number | 'ellipsis'> {
+    if (lastPage <= 7) return Array.from({ length: lastPage }, (_, index) => index + 1);
+
+    const pages: Array<number | 'ellipsis'> = [1];
+    const firstNearbyPage = Math.max(2, currentPage - 1);
+    const lastNearbyPage = Math.min(lastPage - 1, currentPage + 1);
+
+    if (firstNearbyPage > 2) pages.push('ellipsis');
+
+    for (let page = firstNearbyPage; page <= lastNearbyPage; page += 1) {
+        pages.push(page);
+    }
+
+    if (lastNearbyPage < lastPage - 1) pages.push('ellipsis');
+
+    pages.push(lastPage);
+
+    return pages;
+}
+
+function Pagination({ bookings, onPageChange }: { bookings: BookingPaginator; onPageChange: (page: number) => void }) {
+    if (bookings.last_page <= 1) return null;
+
+    return <div className="flex flex-col gap-3 border-t border-base-300 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6"><p className="text-sm text-base-content/65">Showing {bookings.from}–{bookings.to} of {bookings.total} bookings</p><div className="join" aria-label="Table pagination"><button type="button" disabled={bookings.current_page === 1} onClick={() => onPageChange(bookings.current_page - 1)} className="btn btn-sm join-item">Previous</button>{paginationItems(bookings.current_page, bookings.last_page).map((item, index) => item === 'ellipsis' ? <span key={`${item}-${index}`} className="btn btn-sm btn-ghost join-item pointer-events-none">…</span> : <button key={item} type="button" onClick={() => onPageChange(item)} aria-current={item === bookings.current_page ? 'page' : undefined} className={`btn btn-sm join-item ${item === bookings.current_page ? 'btn-primary' : 'btn-ghost'}`}>{item}</button>)}<button type="button" disabled={bookings.current_page === bookings.last_page} onClick={() => onPageChange(bookings.current_page + 1)} className="btn btn-sm join-item">Next</button></div></div>;
 }
 
 function BookingDetails({ booking, onClose }: { booking: Booking; onClose: () => void }) {

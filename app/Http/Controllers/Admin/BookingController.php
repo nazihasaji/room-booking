@@ -22,36 +22,41 @@ class BookingController extends Controller
             'status' => ['nullable', 'string', 'max:50'],
         ]);
 
-        $bookings = Booking::query()
+        $bookingQuery = Booking::query()
             ->with('room:id,name')
             ->when($filters['date'] ?? null, fn ($query, string $date) => $query->whereDate('start_at', $date))
             ->when($filters['room_id'] ?? null, fn ($query, int $roomId) => $query->where('room_id', $roomId))
             ->when($filters['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
             ->orderBy('start_at')
-            ->orderBy('id')
-            ->get()
-            ->map(fn (Booking $booking): array => [
-                'id' => $booking->id,
-                'date' => $booking->start_at->toDateString(),
-                'start_time' => $booking->start_at->format('H:i'),
-                'end_time' => $booking->end_at->format('H:i'),
-                'room' => [
-                    'id' => $booking->room->id,
-                    'name' => $booking->room->name,
-                ],
-                'visitor_name' => $booking->visitor_name,
-                'visitor_email' => $booking->visitor_email,
-                'visitor_mobile' => $booking->visitor_mobile,
-                'attendee_count' => $booking->attendee_count,
-                'refreshment_preference' => $booking->refreshment_preference,
-                'private_purpose' => $booking->private_purpose,
-                'status' => $booking->status,
-                'created_at' => $booking->created_at->toIso8601String(),
-            ])
-            ->values();
+            ->orderBy('id');
+
+        $bookingData = fn (Booking $booking): array => [
+            'id' => $booking->id,
+            'date' => $booking->start_at->toDateString(),
+            'start_time' => $booking->start_at->format('H:i'),
+            'end_time' => $booking->end_at->format('H:i'),
+            'room' => [
+                'id' => $booking->room->id,
+                'name' => $booking->room->name,
+            ],
+            'visitor_name' => $booking->visitor_name,
+            'visitor_email' => $booking->visitor_email,
+            'visitor_mobile' => $booking->visitor_mobile,
+            'attendee_count' => $booking->attendee_count,
+            'refreshment_preference' => $booking->refreshment_preference,
+            'private_purpose' => $booking->private_purpose,
+            'status' => $booking->status,
+            'created_at' => $booking->created_at->toIso8601String(),
+        ];
 
         return Inertia::render('Admin/Bookings/Index', [
-            'bookings' => $bookings,
+            'bookings' => (clone $bookingQuery)
+                ->paginate(10)
+                ->through($bookingData),
+            'calendarBookings' => $bookingQuery
+                ->get()
+                ->map($bookingData)
+                ->values(),
             'rooms' => Room::query()
                 ->orderBy('name')
                 ->get(['id', 'name'])
