@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\BookingAvailabilityController::__invoke
- * @see app/Http/Controllers/BookingAvailabilityController.php:13
+ * @see app/Http/Controllers/BookingAvailabilityController.php:14
  * @route '/bookings/availability'
  */
 const BookingAvailabilityController = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ BookingAvailabilityController.definition = {
 
 /**
 * @see \App\Http\Controllers\BookingAvailabilityController::__invoke
- * @see app/Http/Controllers/BookingAvailabilityController.php:13
+ * @see app/Http/Controllers/BookingAvailabilityController.php:14
  * @route '/bookings/availability'
  */
 BookingAvailabilityController.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ BookingAvailabilityController.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\BookingAvailabilityController::__invoke
- * @see app/Http/Controllers/BookingAvailabilityController.php:13
+ * @see app/Http/Controllers/BookingAvailabilityController.php:14
  * @route '/bookings/availability'
  */
 BookingAvailabilityController.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ BookingAvailabilityController.get = (options?: RouteQueryOptions): RouteDefiniti
 })
 /**
 * @see \App\Http\Controllers\BookingAvailabilityController::__invoke
- * @see app/Http/Controllers/BookingAvailabilityController.php:13
+ * @see app/Http/Controllers/BookingAvailabilityController.php:14
  * @route '/bookings/availability'
  */
 BookingAvailabilityController.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ BookingAvailabilityController.head = (options?: RouteQueryOptions): RouteDefinit
 
     /**
 * @see \App\Http\Controllers\BookingAvailabilityController::__invoke
- * @see app/Http/Controllers/BookingAvailabilityController.php:13
+ * @see app/Http/Controllers/BookingAvailabilityController.php:14
  * @route '/bookings/availability'
  */
     const BookingAvailabilityControllerForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ BookingAvailabilityController.head = (options?: RouteQueryOptions): RouteDefinit
 
             /**
 * @see \App\Http\Controllers\BookingAvailabilityController::__invoke
- * @see app/Http/Controllers/BookingAvailabilityController.php:13
+ * @see app/Http/Controllers/BookingAvailabilityController.php:14
  * @route '/bookings/availability'
  */
         BookingAvailabilityControllerForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ BookingAvailabilityController.head = (options?: RouteQueryOptions): RouteDefinit
         })
             /**
 * @see \App\Http\Controllers\BookingAvailabilityController::__invoke
- * @see app/Http/Controllers/BookingAvailabilityController.php:13
+ * @see app/Http/Controllers/BookingAvailabilityController.php:14
  * @route '/bookings/availability'
  */
         BookingAvailabilityControllerForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

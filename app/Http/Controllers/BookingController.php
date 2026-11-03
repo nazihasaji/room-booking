@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\GraphMailService;
 use App\Http\Requests\StoreBookingRequest;
 use App\Models\Booking;
 use App\Models\Room;
@@ -24,7 +25,7 @@ class BookingController extends Controller
         ]);
     }
 
-    public function store(StoreBookingRequest $request): RedirectResponse
+    public function store(StoreBookingRequest $request, GraphMailService $graphMailService): RedirectResponse
     {
         $data = $request->validated();
         $startAt = CarbonImmutable::createFromFormat(
@@ -38,7 +39,7 @@ class BookingController extends Controller
             config('app.timezone'),
         );
 
-        DB::transaction(function () use ($data, $startAt, $endAt): void {
+        $booking = DB::transaction(function () use ($data, $startAt, $endAt): Booking {
             $room = Room::query()->active()->lockForUpdate()->findOrFail($data['room_id']);
 
             $isAlreadyBooked = Booking::query()
@@ -53,7 +54,7 @@ class BookingController extends Controller
                 ]);
             }
 
-            Booking::query()->create([
+            return Booking::query()->create([
                 'room_id' => $room->id,
                 'start_at' => $startAt,
                 'end_at' => $endAt,
@@ -66,6 +67,9 @@ class BookingController extends Controller
                 'status' => 'confirmed',
             ]);
         }, attempts: 3);
+
+        $graphMailService->sendBookingConfirmation($booking);
+        $graphMailService->sendAdminBookingNotifications($booking);
 
         return to_route('bookings.index')->with('success', 'Your room has been booked.');
     }

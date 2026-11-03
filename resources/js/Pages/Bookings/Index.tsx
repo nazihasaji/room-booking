@@ -29,15 +29,16 @@ type BookingPageProps = {
 };
 
 const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const bookableTimeSlots: TimeSlot[] = Array.from({ length: 8 }, (_, index) => {
-    const startHour = String(index + 9).padStart(2, '0');
-    const endHour = String(index + 10).padStart(2, '0');
+const bookableTimeSlots: TimeSlot[] = Array.from({ length: 19 }, (_, index) => {
+    const startMinutes = (8 * 60) + 30 + (index * 30);
+    const endMinutes = startMinutes + 30;
 
     return {
-        start: `${startHour}:00`,
-        end: `${endHour}:00`,
+        start: `${String(Math.floor(startMinutes / 60)).padStart(2, '0')}:${String(startMinutes % 60).padStart(2, '0')}`,
+        end: `${String(Math.floor(endMinutes / 60)).padStart(2, '0')}:${String(endMinutes % 60).padStart(2, '0')}`,
     };
 });
+const quickSelectTimeSlots = bookableTimeSlots.filter((slot) => slot.start !== '08:30');
 
 function dateKey(date: Date): string {
     return [
@@ -75,6 +76,7 @@ export default function Index({ rooms, flash }: BookingPageProps) {
     const [availabilityData, setAvailabilityData] = useState<Availability>();
     const [isLoadingAvailability, setIsLoadingAvailability] = useState(true);
     const [availabilityError, setAvailabilityError] = useState<string>();
+    const [isRangeSelectionComplete, setIsRangeSelectionComplete] = useState(false);
     const { data, setData, post, processing, errors, reset } = useForm({
         room_id: rooms[0]?.id ?? 0,
         date: dateKey(today),
@@ -84,7 +86,7 @@ export default function Index({ rooms, flash }: BookingPageProps) {
         visitor_email: '',
         visitor_mobile: '',
         attendee_count: 1,
-        refreshment_preference: 'none',
+        refreshment_preference: '',
         private_purpose: '',
     });
 
@@ -114,6 +116,7 @@ export default function Index({ rooms, flash }: BookingPageProps) {
         setData('date', selectedDate);
         setData('start_time', '');
         setData('end_time', '');
+        setIsRangeSelectionComplete(false);
         void loadAvailability(selectedDate);
     }, [selectedDate]);
 
@@ -121,27 +124,11 @@ export default function Index({ rooms, flash }: BookingPageProps) {
         (room) => room.id === data.room_id,
     );
     const availableSlots = selectedRoom?.time_slots ?? [];
-    const availableEndTimes = useMemo(() => {
-        const selectedSlotIndex = availableSlots.findIndex(
-            (slot) => slot.start === data.start_time,
-        );
-
-        if (selectedSlotIndex === -1) {
-            return [];
-        }
-
-        const endTimes = [availableSlots[selectedSlotIndex].end];
-
-        for (let index = selectedSlotIndex + 1; index < availableSlots.length; index += 1) {
-            if (availableSlots[index - 1].end !== availableSlots[index].start) {
-                break;
-            }
-
-            endTimes.push(availableSlots[index].end);
-        }
-
-        return endTimes;
-    }, [availableSlots, data.start_time]);
+    const availableEndTimes = data.start_time === ''
+        ? []
+        : bookableTimeSlots
+            .map((slot) => slot.end)
+            .filter((endTime) => canEndRangeAt(endTime));
     const monthDays = useMemo(() => {
         const firstDay = new Date(
             visibleMonth.getFullYear(),
@@ -167,11 +154,41 @@ export default function Index({ rooms, flash }: BookingPageProps) {
         setSelectedDate(dateKey(date));
     }
 
-    function chooseStartTime(startTime: string): void {
-        const selectedSlot = availableSlots.find((slot) => slot.start === startTime);
+    function canEndRangeAt(endTime: string): boolean {
+        const selectedStartIndex = bookableTimeSlots.findIndex(
+            (slot) => slot.start === data.start_time,
+        );
+        const selectedEndIndex = bookableTimeSlots.findIndex(
+            (slot) => slot.end === endTime,
+        );
 
-        setData('start_time', startTime);
-        setData('end_time', selectedSlot?.end ?? '');
+        return selectedStartIndex >= 0
+            && selectedEndIndex >= selectedStartIndex
+            && bookableTimeSlots
+                .slice(selectedStartIndex, selectedEndIndex + 1)
+                .every((slot) => availableSlots.some((availableSlot) => availableSlot.start === slot.start));
+    }
+
+    function chooseTimeRange(slot: TimeSlot): void {
+        if (isRangeSelectionComplete) {
+            setData('start_time', slot.start);
+            setData('end_time', slot.end);
+            setIsRangeSelectionComplete(false);
+
+            return;
+        }
+
+        const canExtendRange = canEndRangeAt(slot.start);
+
+        if (canExtendRange) {
+            setData('end_time', slot.start);
+            setIsRangeSelectionComplete(true);
+            return;
+        }
+
+        setData('start_time', slot.start);
+        setData('end_time', slot.end);
+        setIsRangeSelectionComplete(false);
     }
 
     function submit(event: FormEvent<HTMLFormElement>): void {
@@ -189,6 +206,7 @@ export default function Index({ rooms, flash }: BookingPageProps) {
                     'refreshment_preference',
                     'private_purpose',
                 );
+                setIsRangeSelectionComplete(false);
                 void loadAvailability(selectedDate);
             },
         });
@@ -250,24 +268,32 @@ export default function Index({ rooms, flash }: BookingPageProps) {
                             <div className="mt-3 flex items-center gap-4 text-xs font-semibold text-slate-600" aria-label="Time availability legend"><span className="inline-flex items-center gap-1.5"><span className="size-3 rounded border border-slate-300 bg-white" />Available</span><span className="inline-flex items-center gap-1.5"><span className="relative size-3 overflow-hidden rounded" style={{ backgroundColor: '#fee2e2', borderColor: '#fecaca' }}><svg aria-hidden="true" viewBox="0 0 12 12" preserveAspectRatio="none" className="absolute inset-0 size-full text-error"><line x1="0" y1="12" x2="12" y2="0" stroke="currentColor" strokeWidth="2" /></svg></span>Unavailable</span></div>
                             <div className="mt-5">
                                 <label htmlFor="room" className="text-sm font-semibold text-slate-700">Room</label>
-                                <select id="room" value={data.room_id} onChange={(event) => { setData('room_id', Number(event.target.value)); setData('start_time', ''); setData('end_time', ''); }} className="select select-bordered mt-2 w-full focus:select-primary">
+                                <select id="room" value={data.room_id} onChange={(event) => { setData('room_id', Number(event.target.value)); setData('start_time', ''); setData('end_time', ''); setIsRangeSelectionComplete(false); }} className="select select-bordered mt-2 w-full focus:select-primary">
                                     {rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
                                 </select>
                             </div>
                             <div className="mt-5">
-                                <p className="text-sm font-semibold text-slate-700">Start times</p>
+                                <p className="text-sm font-semibold text-slate-700">Quick select</p>
+                                <p className="mt-1 text-xs text-slate-500">Choose a start time, then click the time you want the meeting to end.</p>
                                 {isLoadingAvailability ? (
                                     <div className="mt-3 grid grid-cols-2 gap-2 animate-pulse"><div className="h-10 rounded-lg bg-slate-100" /><div className="h-10 rounded-lg bg-slate-100" /></div>
                                 ) : availabilityError ? (
                                     <p className="mt-3 text-sm text-red-700">{availabilityError}</p>
                                 ) : (
                                     <div className="mt-3 grid grid-cols-2 gap-2">
-                                        {bookableTimeSlots.map((slot) => {
+                                        {quickSelectTimeSlots.map((slot) => {
                                             const isAvailable = availableSlots.some(
                                                 (availableSlot) => availableSlot.start === slot.start,
                                             );
+                                            const canEndRange = canEndRangeAt(slot.start);
+                                            const isSelectable = isAvailable || canEndRange;
+                                            const isInSelectedRange = data.start_time !== ''
+                                                && data.end_time !== ''
+                                                && slot.start >= data.start_time
+                                                && slot.end <= data.end_time;
+                                            const isRangeEnd = data.end_time === slot.start;
 
-                                            return <button key={slot.start} type="button" disabled={!isAvailable} onClick={() => chooseStartTime(slot.start)} className={`btn btn-sm relative overflow-hidden ${!isAvailable ? 'opacity-100 disabled:opacity-100' : data.start_time === slot.start ? 'btn-primary' : 'btn-outline'}`} style={!isAvailable ? { backgroundColor: '#fee2e2', borderColor: '#fecaca', color: '#b91c1c', opacity: 1 } : undefined} aria-label={`${formatTime(slot.start)}${isAvailable ? ', available' : ', unavailable'}`}><span className="relative z-10">{formatTime(slot.start)}</span>{!isAvailable && <svg aria-hidden="true" viewBox="0 0 100 40" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 size-full text-error"><line x1="0" y1="40" x2="100" y2="0" stroke="currentColor" strokeWidth="3" /></svg>}</button>;
+                                            return <button key={slot.start} type="button" disabled={!isSelectable} onClick={() => chooseTimeRange(slot)} className={`btn btn-sm relative overflow-hidden ${!isSelectable ? 'opacity-100 disabled:opacity-100' : isInSelectedRange || isRangeEnd ? 'btn-primary' : 'btn-outline'}`} style={!isSelectable ? { backgroundColor: '#fee2e2', borderColor: '#fecaca', color: '#b91c1c', opacity: 1 } : undefined} aria-label={`${formatTime(slot.start)}${isSelectable ? ', selectable' : ', unavailable'}`}><span className="relative z-10">{formatTime(slot.start)}</span>{!isSelectable && <svg aria-hidden="true" viewBox="0 0 100 40" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 size-full text-error"><line x1="0" y1="40" x2="100" y2="0" stroke="currentColor" strokeWidth="3" /></svg>}</button>;
                                         })}
                                     </div>
                                 )}
@@ -279,12 +305,12 @@ export default function Index({ rooms, flash }: BookingPageProps) {
                             <p className="mt-1 text-sm text-slate-600">Your details and purpose are stored privately.</p>
                             <div className="mt-4 space-y-3">
                                 <div className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700"><span className="font-semibold">Date:</span> {formatDate(new Date(`${selectedDate}T00:00:00`))}</div>
-                                <Field label="Time" error={errors.start_time ?? errors.end_time}><div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2"><select value={data.start_time} onChange={(event) => chooseStartTime(event.target.value)} className="field"><option value="">From</option>{availableSlots.map((slot) => <option key={slot.start} value={slot.start}>{formatTime(slot.start)}</option>)}</select><span className="text-sm text-slate-500">to</span><select value={data.end_time} onChange={(event) => setData('end_time', event.target.value)} disabled={!data.start_time} className="field disabled:cursor-not-allowed disabled:bg-slate-100">{!data.start_time && <option value="">To</option>}{availableEndTimes.map((time) => <option key={time} value={time}>{formatTime(time)}</option>)}</select></div><span className="mt-2 block text-xs font-normal text-slate-500">Only uninterrupted end times are offered.</span></Field>
+                                <Field label="Time" error={errors.start_time ?? errors.end_time}><div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2"><select value={data.start_time} onChange={(event) => { const startTime = event.target.value; const startSlot = availableSlots.find((slot) => slot.start === startTime); setData('start_time', startTime); setData('end_time', startSlot?.end ?? ''); setIsRangeSelectionComplete(false); }} className="select select-bordered w-full focus:select-primary" aria-label="Start time"><option value="">From</option>{availableSlots.map((slot) => <option key={slot.start} value={slot.start}>{formatTime(slot.start)}</option>)}</select><span className="text-sm text-base-content/60">to</span><select value={data.end_time} onChange={(event) => { setData('end_time', event.target.value); setIsRangeSelectionComplete(true); }} disabled={data.start_time === ''} className="select select-bordered w-full focus:select-primary disabled:bg-base-200" aria-label="End time"><option value="">To</option>{availableEndTimes.map((endTime) => <option key={endTime} value={endTime}>{formatTime(endTime)}</option>)}</select></div><span className="mt-2 block text-xs font-normal text-slate-500">Use the time range picker or these dropdowns to select uninterrupted available slots.</span></Field>
                                 <Field label="Your name" error={errors.visitor_name}><input value={data.visitor_name} onChange={(event) => setData('visitor_name', event.target.value)} className="field" autoComplete="name" /></Field>
-                                <Field label="Email address (optional)" error={errors.visitor_email}><input type="email" value={data.visitor_email} onChange={(event) => setData('visitor_email', event.target.value)} className="field" autoComplete="email" /></Field>
+                                <Field label="Email address" error={errors.visitor_email}><input type="email" value={data.visitor_email} onChange={(event) => setData('visitor_email', event.target.value)} className="field" autoComplete="email" required /></Field>
                                 <Field label="Mobile number (optional)" error={errors.visitor_mobile}><input type="tel" value={data.visitor_mobile} onChange={(event) => setData('visitor_mobile', event.target.value)} className="field" autoComplete="tel" /></Field>
                                 <Field label="No. of attendees" error={errors.attendee_count}><input type="number" min="1" max="500" value={data.attendee_count} onChange={(event) => setData('attendee_count', Number(event.target.value))} className="field" /></Field>
-                                <Field label="Need coffee or tea?" error={errors.refreshment_preference}><select value={data.refreshment_preference} onChange={(event) => setData('refreshment_preference', event.target.value)} className="field"><option value="none">No refreshments</option><option value="coffee">Coffee</option><option value="tea">Tea</option></select></Field>
+                                <Field label="Refreshments needed?" error={errors.refreshment_preference}><select value={data.refreshment_preference} onChange={(event) => setData('refreshment_preference', event.target.value)} className="field"><option value="" disabled>Select an option</option><option value="yes">Yes</option><option value="no">No</option></select></Field>
                                 <Field label="Purpose (private)" error={errors.private_purpose}><textarea value={data.private_purpose} onChange={(event) => setData('private_purpose', event.target.value)} className="field min-h-20 resize-y" maxLength={500} /></Field>
                                 <button type="submit" disabled={processing || !data.end_time} className="btn btn-primary w-full">{processing ? 'Booking…' : 'Book a slot'}</button>
                             </div>

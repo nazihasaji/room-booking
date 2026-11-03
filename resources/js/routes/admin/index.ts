@@ -1,5 +1,6 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../wayfinder'
 import bookings from './bookings'
+import users from './users'
 /**
 * @see \Illuminate\Routing\RedirectController::__invoke
  * @see vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:19
@@ -191,6 +192,7 @@ dashboard.options = (options?: RouteQueryOptions): RouteDefinition<'options'> =>
 const admin = {
     dashboard: Object.assign(dashboard, dashboard),
 bookings: Object.assign(bookings, bookings),
+users: Object.assign(users, users),
 }
 
 export default admin

@@ -33,9 +33,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $destination = $request->user()->isSuperAdmin()
-            ? route('admin.bookings.index', absolute: false)
-            : route('bookings.index', absolute: false);
+        $destination = route('admin.bookings.index', absolute: false);
 
         return redirect()->intended($destination);
     }

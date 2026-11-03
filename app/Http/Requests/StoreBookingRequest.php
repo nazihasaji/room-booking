@@ -24,15 +24,16 @@ class StoreBookingRequest extends FormRequest
      */
     public function rules(): array
     {
-        $openingHour = (int) config('booking.opening_hour');
-        $closingHour = (int) config('booking.closing_hour');
+        $openingMinute = (int) config('booking.opening_minute');
+        $closingMinute = (int) config('booking.closing_minute');
+        $slotMinutes = (int) config('booking.slot_minutes');
         $startTimes = array_map(
-            fn (int $hour): string => sprintf('%02d:00', $hour),
-            range($openingHour, $closingHour - 1),
+            fn (int $minutes): string => sprintf('%02d:%02d', intdiv($minutes, 60), $minutes % 60),
+            range($openingMinute, $closingMinute - $slotMinutes, $slotMinutes),
         );
         $endTimes = array_map(
-            fn (int $hour): string => sprintf('%02d:00', $hour),
-            range($openingHour + 1, $closingHour),
+            fn (int $minutes): string => sprintf('%02d:%02d', intdiv($minutes, 60), $minutes % 60),
+            range($openingMinute + $slotMinutes, $closingMinute, $slotMinutes),
         );
 
         return [
@@ -41,10 +42,10 @@ class StoreBookingRequest extends FormRequest
             'start_time' => ['required', 'date_format:H:i', Rule::in($startTimes)],
             'end_time' => ['required', 'date_format:H:i', Rule::in($endTimes)],
             'visitor_name' => ['required', 'string', 'max:255'],
-            'visitor_email' => ['nullable', 'email', 'max:255'],
+            'visitor_email' => ['required', 'email', 'max:255'],
             'visitor_mobile' => ['nullable', 'string', 'regex:/^[0-9+() -]{7,30}$/'],
             'attendee_count' => ['required', 'integer', 'min:1', 'max:500'],
-            'refreshment_preference' => ['required', Rule::in(['none', 'coffee', 'tea'])],
+            'refreshment_preference' => ['required', Rule::in(['yes', 'no'])],
             'private_purpose' => ['nullable', 'string', 'max:500'],
         ];
     }

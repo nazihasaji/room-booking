@@ -1,0 +1,137 @@
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { destroy, store, update } from '@/actions/App/Http/Controllers/Admin/UserController';
+import { index as accountIndex } from '@/routes/admin/users';
+import { PageProps } from '@/types';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { FormEvent, useState } from 'react';
+
+type ManagedUser = {
+    id: number;
+    name: string;
+    email: string;
+    is_super_admin: boolean;
+    created_at: string;
+};
+
+type Paginator = {
+    data: ManagedUser[];
+    current_page: number;
+    last_page: number;
+    from: number | null;
+    to: number | null;
+    total: number;
+};
+
+export default function Index({ users }: PageProps<{ users: Paginator }>) {
+    const currentUser = usePage().props.auth.user;
+    const flash = usePage().props.flash as { success?: string; error?: string };
+    const [selectedUser, setSelectedUser] = useState<ManagedUser | null>(null);
+    const [isCreating, setIsCreating] = useState(false);
+
+    function closeForm(): void {
+        setSelectedUser(null);
+        setIsCreating(false);
+    }
+
+    function deleteUser(user: ManagedUser): void {
+        if (!window.confirm(`Delete ${user.name}'s account? This cannot be undone.`)) {
+            return;
+        }
+
+        router.delete(destroy(user).url, { preserveScroll: true });
+    }
+
+    return (
+        <AuthenticatedLayout
+            header={<div><p className="text-sm font-semibold text-primary">ADMINISTRATION</p><h2 className="text-2xl font-bold">Manage accounts</h2></div>}
+        >
+            <Head title="Manage accounts" />
+
+            <div className="py-10">
+                <div className="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
+                    {flash.success && <div className="alert border-emerald-200 bg-emerald-100 text-emerald-800"><span>{flash.success}</span></div>}
+                    {flash.error && <div className="alert alert-error"><span>{flash.error}</span></div>}
+
+                    <section className="overflow-hidden rounded-2xl border border-base-300 bg-base-100 shadow-sm">
+                        <header className="flex flex-col gap-4 border-b border-base-300 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+                            <div><h3 className="text-xl font-bold">Accounts</h3><p className="mt-1 text-sm text-base-content/65">Create and manage staff access to Room Reserve.</p></div>
+                            <button type="button" onClick={() => setIsCreating(true)} className="btn btn-primary">Add account</button>
+                        </header>
+
+                        <div className="overflow-x-auto">
+                            <table className="table table-zebra">
+                                <thead><tr><th>Name</th><th>Email</th><th>Access</th><th>Created</th><th><span className="sr-only">Actions</span></th></tr></thead>
+                                <tbody>
+                                    {users.data.map((user) => <tr key={user.id}>
+                                        <td><div className="font-semibold">{user.name}{user.id === currentUser.id && <span className="ml-2 text-xs font-normal text-base-content/60">(you)</span>}</div></td>
+                                        <td>{user.email}</td>
+                                        <td>{user.is_super_admin ? <span className="badge badge-primary">Super administrator</span> : <span className="badge badge-ghost">Administrator</span>}</td>
+                                        <td>{new Intl.DateTimeFormat('en-MY', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(user.created_at))}</td>
+                                        <td className="text-right"><div className="flex justify-end gap-2"><button type="button" onClick={() => setSelectedUser(user)} className="btn btn-sm btn-ghost">Edit</button><button type="button" onClick={() => deleteUser(user)} disabled={user.id === currentUser.id} title={user.id === currentUser.id ? 'Use Profile to delete your own account.' : undefined} className="btn btn-error btn-outline btn-sm">Delete</button></div></td>
+                                    </tr>)}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {!users.data.length && <p className="p-12 text-center text-base-content/65">No accounts found.</p>}
+                        <Pagination users={users} />
+                    </section>
+                </div>
+            </div>
+
+            {(isCreating || selectedUser) && <AccountForm user={selectedUser} currentUserId={currentUser.id} onClose={closeForm} />}
+        </AuthenticatedLayout>
+    );
+}
+
+function AccountForm({ user, currentUserId, onClose }: { user: ManagedUser | null; currentUserId: number; onClose: () => void }) {
+    const isEditing = user !== null;
+    const isCurrentUser = user?.id === currentUserId;
+    const { data, setData, post, put, processing, errors } = useForm({
+        name: user?.name ?? '',
+        email: user?.email ?? '',
+        password: '',
+        password_confirmation: '',
+        is_super_admin: user?.is_super_admin ?? true,
+        send_invitation: !isEditing,
+    });
+
+    function submit(event: FormEvent<HTMLFormElement>): void {
+        event.preventDefault();
+
+        const options = { preserveScroll: true, onSuccess: onClose };
+
+        if (user) {
+            put(update(user).url, options);
+            return;
+        }
+
+        post(store.url(), options);
+    }
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-end bg-slate-950/40 p-4 sm:items-center sm:justify-center" role="dialog" aria-modal="true" aria-labelledby="account-form-title">
+            <form onSubmit={submit} className="w-full max-w-xl rounded-2xl bg-base-100 shadow-xl">
+                <header className="flex items-start justify-between gap-4 border-b border-base-300 px-5 py-4 sm:px-6"><div><h2 id="account-form-title" className="text-xl font-bold">{isEditing ? 'Edit account' : 'Add account'}</h2><p className="mt-1 text-sm text-base-content/65">{isEditing ? 'Leave the password blank to keep it unchanged.' : 'An invitation lets the person set their own password.'}</p></div><button type="button" onClick={onClose} className="btn btn-circle btn-ghost btn-sm" aria-label="Close account form">✕</button></header>
+                <div className="grid gap-4 px-5 py-5 sm:px-6">
+                    <Field label="Name" error={errors.name}><input value={data.name} onChange={(event) => setData('name', event.target.value)} autoComplete="name" className="input input-bordered mt-1 w-full" /></Field>
+                    <Field label="Email address" error={errors.email}><input type="email" value={data.email} onChange={(event) => setData('email', event.target.value)} autoComplete="email" className="input input-bordered mt-1 w-full" /></Field>
+                    <div className="grid gap-4 sm:grid-cols-2"><Field label={!isEditing && !data.send_invitation ? 'Temporary password' : 'Temporary password (optional)'} error={errors.password}><input type="password" value={data.password} onChange={(event) => setData('password', event.target.value)} autoComplete="new-password" className="input input-bordered mt-1 w-full" /></Field><Field label="Confirm password" error={errors.password_confirmation}><input type="password" value={data.password_confirmation} onChange={(event) => setData('password_confirmation', event.target.value)} autoComplete="new-password" className="input input-bordered mt-1 w-full" /></Field></div>
+                    {!isEditing && <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-4"><input type="checkbox" checked={data.send_invitation} onChange={(event) => setData('send_invitation', event.target.checked)} className="checkbox checkbox-primary mt-0.5" /><span><span className="block font-semibold">Send invitation email</span><span className="mt-1 block text-sm text-base-content/65">Sends a secure link so they can set their own password.</span></span></label>}
+                    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-4"><input type="checkbox" checked={data.is_super_admin} disabled={isCurrentUser} onChange={(event) => setData('is_super_admin', event.target.checked)} className="checkbox checkbox-primary mt-0.5" /><span><span className="block font-semibold">Super administrator</span><span className="mt-1 block text-sm text-base-content/65">Can manage bookings and accounts. Administrators receive new-booking notifications.</span>{isCurrentUser && <span className="mt-1 block text-sm text-base-content/65">You cannot remove your own super-admin access.</span>}</span></label>
+                </div>
+                <footer className="flex justify-end gap-2 border-t border-base-300 px-5 py-4 sm:px-6"><button type="button" onClick={onClose} className="btn btn-ghost btn-sm">Cancel</button><button type="submit" disabled={processing} className="btn btn-primary btn-sm">{processing ? 'Saving…' : isEditing ? 'Save changes' : 'Create account'}</button></footer>
+            </form>
+        </div>
+    );
+}
+
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+    return <label className="block text-sm font-semibold">{label}{children}{error && <span className="mt-1 block text-sm text-error">{error}</span>}</label>;
+}
+
+function Pagination({ users }: { users: Paginator }) {
+    if (users.last_page <= 1) return null;
+
+    return <footer className="flex flex-col gap-3 border-t border-base-300 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6"><p className="text-base-content/65">Showing {users.from}–{users.to} of {users.total} accounts</p><div className="join">{users.current_page === 1 ? <span className="btn btn-sm join-item btn-disabled">Previous</span> : <Link href={accountIndex.url({ query: { page: users.current_page - 1 } })} preserveScroll className="btn btn-sm join-item">Previous</Link>}<span className="btn btn-sm join-item pointer-events-none">Page {users.current_page} of {users.last_page}</span>{users.current_page === users.last_page ? <span className="btn btn-sm join-item btn-disabled">Next</span> : <Link href={accountIndex.url({ query: { page: users.current_page + 1 } })} preserveScroll className="btn btn-sm join-item">Next</Link>}</div></footer>;
+}

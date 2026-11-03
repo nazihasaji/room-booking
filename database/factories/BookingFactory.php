@@ -28,7 +28,7 @@ class BookingFactory extends Factory
             'visitor_email' => fake()->safeEmail(),
             'visitor_mobile' => '+60123456789',
             'attendee_count' => fake()->numberBetween(1, 20),
-            'refreshment_preference' => 'none',
+            'refreshment_preference' => 'no',
             'private_purpose' => fake()->sentence(),
             'status' => 'confirmed',
         ];

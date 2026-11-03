@@ -7,13 +7,18 @@ use App\Models\Room;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class BookingAvailabilityController extends Controller
 {
     public function __invoke(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
+            'date' => [
+                'required',
+                'date_format:Y-m-d',
+                Rule::when(! $request->user()?->isSuperAdmin(), ['after_or_equal:today']),
+            ],
         ]);
 
         $date = CarbonImmutable::createFromFormat(
@@ -22,10 +27,12 @@ class BookingAvailabilityController extends Controller
             config('app.timezone'),
         )->startOfDay();
         $dayEnd = $date->addDay();
+        $slotMinutes = (int) config('booking.slot_minutes');
         $slotStarts = collect(range(
-            (int) config('booking.opening_hour'),
-            (int) config('booking.closing_hour') - 1,
-        ))->map(fn (int $hour): CarbonImmutable => $date->setTime($hour, 0));
+            (int) config('booking.opening_minute'),
+            (int) config('booking.closing_minute') - $slotMinutes,
+            $slotMinutes,
+        ))->map(fn (int $minutes): CarbonImmutable => $date->setTime(intdiv($minutes, 60), $minutes % 60));
 
         $rooms = Room::query()
             ->active()
@@ -43,11 +50,11 @@ class BookingAvailabilityController extends Controller
                 'name' => $room->name,
                 'time_slots' => $slotStarts
                     ->filter(fn (CarbonImmutable $startAt): bool => $room->bookings
-                        ->doesntContain(fn (Booking $booking): bool => $booking->start_at->lt($startAt->addHour())
+                        ->doesntContain(fn (Booking $booking): bool => $booking->start_at->lt($startAt->addMinutes($slotMinutes))
                             && $booking->end_at->gt($startAt)))
                     ->map(fn (CarbonImmutable $startAt): array => [
                         'start' => $startAt->format('H:i'),
-                        'end' => $startAt->addHour()->format('H:i'),
+                        'end' => $startAt->addMinutes($slotMinutes)->format('H:i'),
                     ])
                     ->values()
                     ->all(),

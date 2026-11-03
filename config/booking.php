@@ -1,6 +1,7 @@
 <?php
 
 return [
-    'opening_hour' => 9,
-    'closing_hour' => 17,
+    'opening_minute' => (8 * 60) + 30,
+    'closing_minute' => 18 * 60,
+    'slot_minutes' => 30,
 ];

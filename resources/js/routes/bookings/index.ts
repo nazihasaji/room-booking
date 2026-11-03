@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../wayfinder'
 /**
 * @see \App\Http\Controllers\BookingController::index
- * @see app/Http/Controllers/BookingController.php:17
+ * @see app/Http/Controllers/BookingController.php:18
  * @route '/bookings'
  */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\BookingController::index
- * @see app/Http/Controllers/BookingController.php:17
+ * @see app/Http/Controllers/BookingController.php:18
  * @route '/bookings'
  */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\BookingController::index
- * @see app/Http/Controllers/BookingController.php:17
+ * @see app/Http/Controllers/BookingController.php:18
  * @route '/bookings'
  */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\BookingController::index
- * @see app/Http/Controllers/BookingController.php:17
+ * @see app/Http/Controllers/BookingController.php:18
  * @route '/bookings'
  */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\BookingController::index
- * @see app/Http/Controllers/BookingController.php:17
+ * @see app/Http/Controllers/BookingController.php:18
  * @route '/bookings'
  */
     const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\BookingController::index
- * @see app/Http/Controllers/BookingController.php:17
+ * @see app/Http/Controllers/BookingController.php:18
  * @route '/bookings'
  */
         indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\BookingController::index
- * @see app/Http/Controllers/BookingController.php:17
+ * @see app/Http/Controllers/BookingController.php:18
  * @route '/bookings'
  */
         indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\BookingAvailabilityController::__invoke
- * @see app/Http/Controllers/BookingAvailabilityController.php:13
+ * @see app/Http/Controllers/BookingAvailabilityController.php:14
  * @route '/bookings/availability'
  */
 export const availability = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ availability.definition = {
 
 /**
 * @see \App\Http\Controllers\BookingAvailabilityController::__invoke
- * @see app/Http/Controllers/BookingAvailabilityController.php:13
+ * @see app/Http/Controllers/BookingAvailabilityController.php:14
  * @route '/bookings/availability'
  */
 availability.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ availability.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\BookingAvailabilityController::__invoke
- * @see app/Http/Controllers/BookingAvailabilityController.php:13
+ * @see app/Http/Controllers/BookingAvailabilityController.php:14
  * @route '/bookings/availability'
  */
 availability.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -112,7 +112,7 @@ availability.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\BookingAvailabilityController::__invoke
- * @see app/Http/Controllers/BookingAvailabilityController.php:13
+ * @see app/Http/Controllers/BookingAvailabilityController.php:14
  * @route '/bookings/availability'
  */
 availability.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -122,7 +122,7 @@ availability.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\BookingAvailabilityController::__invoke
- * @see app/Http/Controllers/BookingAvailabilityController.php:13
+ * @see app/Http/Controllers/BookingAvailabilityController.php:14
  * @route '/bookings/availability'
  */
     const availabilityForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -132,7 +132,7 @@ availability.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\BookingAvailabilityController::__invoke
- * @see app/Http/Controllers/BookingAvailabilityController.php:13
+ * @see app/Http/Controllers/BookingAvailabilityController.php:14
  * @route '/bookings/availability'
  */
         availabilityForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -141,7 +141,7 @@ availability.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\BookingAvailabilityController::__invoke
- * @see app/Http/Controllers/BookingAvailabilityController.php:13
+ * @see app/Http/Controllers/BookingAvailabilityController.php:14
  * @route '/bookings/availability'
  */
         availabilityForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -157,7 +157,7 @@ availability.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     availability.form = availabilityForm
 /**
 * @see \App\Http\Controllers\BookingController::store
- * @see app/Http/Controllers/BookingController.php:27
+ * @see app/Http/Controllers/BookingController.php:28
  * @route '/bookings'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -172,7 +172,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\BookingController::store
- * @see app/Http/Controllers/BookingController.php:27
+ * @see app/Http/Controllers/BookingController.php:28
  * @route '/bookings'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -181,7 +181,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\BookingController::store
- * @see app/Http/Controllers/BookingController.php:27
+ * @see app/Http/Controllers/BookingController.php:28
  * @route '/bookings'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -191,7 +191,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\BookingController::store
- * @see app/Http/Controllers/BookingController.php:27
+ * @see app/Http/Controllers/BookingController.php:28
  * @route '/bookings'
  */
     const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -201,7 +201,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\BookingController::store
- * @see app/Http/Controllers/BookingController.php:27
+ * @see app/Http/Controllers/BookingController.php:28
  * @route '/bookings'
  */
         storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
