@@ -1,7 +1,7 @@
-import DangerButton from '@/Components/DangerButton';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
+import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
 import { destroy as destroyProfile } from '@/actions/App/Http/Controllers/ProfileController';
@@ -65,9 +65,9 @@ export default function DeleteUserForm({
                 </p>
             </header>
 
-            <DangerButton onClick={confirmUserDeletion}>
+            <PrimaryButton onClick={confirmUserDeletion}>
                 Delete Account
-            </DangerButton>
+            </PrimaryButton>
 
             <Modal show={confirmingUserDeletion} onClose={closeModal}>
                 <form onSubmit={deleteUser} className="p-6">
@@ -114,9 +114,9 @@ export default function DeleteUserForm({
                             Cancel
                         </SecondaryButton>
 
-                        <DangerButton className="ms-3" disabled={processing}>
+                        <PrimaryButton className="ms-3" disabled={processing}>
                             Delete Account
-                        </DangerButton>
+                        </PrimaryButton>
                     </div>
                 </form>
             </Modal>

@@ -72,8 +72,7 @@ class AdminBookingTest extends TestCase
                 ->where('bookings.data.0.visitor_email', 'aisha@example.test')
                 ->where('bookings.data.0.visitor_mobile', '+60123456789')
                 ->where('bookings.data.0.attendee_count', 12)
-                ->where('bookings.data.0.refreshment_preference', 'yes')
-                ->where('bookings.data.0.private_purpose', 'Quarterly planning session'));
+                ->where('bookings.data.0.refreshment_preference', 'yes'));
     }
 
     public function test_booking_management_paginates_the_table_with_ten_bookings_per_page(): void
@@ -93,6 +92,38 @@ class AdminBookingTest extends TestCase
                 ->has('calendarBookings', 11));
     }
 
+    public function test_booking_management_can_filter_by_multiple_rooms(): void
+    {
+        $firstRoom = Room::factory()->create();
+        $secondRoom = Room::factory()->create();
+        $otherRoom = Room::factory()->create();
+        $firstBooking = Booking::factory()->for($firstRoom)->create([
+            'start_at' => '2026-11-03 09:00:00',
+            'end_at' => '2026-11-03 10:00:00',
+        ]);
+        $secondBooking = Booking::factory()->for($secondRoom)->create([
+            'start_at' => '2026-11-04 09:00:00',
+            'end_at' => '2026-11-04 10:00:00',
+        ]);
+        Booking::factory()->for($otherRoom)->create([
+            'start_at' => '2026-11-05 09:00:00',
+            'end_at' => '2026-11-05 10:00:00',
+        ]);
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('admin.bookings.index', [
+                'room_ids' => [$firstRoom->id, $secondRoom->id],
+            ]))
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/Bookings/Index')
+                ->where('filters.room_ids', [(string) $firstRoom->id, (string) $secondRoom->id])
+                ->has('bookings.data', 2)
+                ->where('bookings.data.0.id', $firstBooking->id)
+                ->where('bookings.data.1.id', $secondBooking->id)
+                ->has('calendarBookings', 2));
+    }
+
     public function test_administrators_can_add_a_booking(): void
     {
         $room = Room::factory()->create();
@@ -108,7 +139,6 @@ class AdminBookingTest extends TestCase
                 'visitor_mobile' => '+60123456789',
                 'attendee_count' => 3,
                 'refreshment_preference' => 'yes',
-                'private_purpose' => 'Project discussion',
             ]);
 
         $response->assertRedirectToRoute('admin.bookings.index');
@@ -127,6 +157,7 @@ class AdminBookingTest extends TestCase
         $booking = Booking::factory()->for($room)->create([
             'start_at' => '2026-11-03 10:00:00',
             'end_at' => '2026-11-03 11:00:00',
+            'private_purpose' => 'A previously recorded purpose',
         ]);
 
         $response = $this->actingAs(User::factory()->create())
@@ -140,7 +171,6 @@ class AdminBookingTest extends TestCase
                 'visitor_mobile' => '+60123456789',
                 'attendee_count' => 12,
                 'refreshment_preference' => 'yes',
-                'private_purpose' => 'Quarterly planning',
             ]);
 
         $response->assertRedirectToRoute('admin.bookings.index');
@@ -151,6 +181,7 @@ class AdminBookingTest extends TestCase
             'end_at' => '2026-11-03 11:00:00',
             'visitor_name' => 'Aisha Rahman',
             'refreshment_preference' => 'yes',
+            'private_purpose' => 'A previously recorded purpose',
         ]);
     }
 

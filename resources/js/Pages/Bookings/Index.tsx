@@ -1,4 +1,5 @@
 import { useForm } from '@inertiajs/react';
+import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { availability, store } from '@/routes/bookings';
 
@@ -65,6 +66,42 @@ function formatTime(time: string): string {
         hour: 'numeric',
         minute: '2-digit',
     }).format(date);
+}
+
+type DropdownOption = {
+    value: string;
+    label: string;
+};
+
+type DropdownProps = {
+    value: string;
+    options: DropdownOption[];
+    placeholder: string;
+    label: string;
+    disabled?: boolean;
+    onChange: (value: string) => void;
+};
+
+function Dropdown({ value, options, placeholder, label, disabled = false, onChange }: DropdownProps) {
+    const selectedOption = options.find((option) => option.value === value);
+
+    return (
+        <Listbox value={value} onChange={onChange} disabled={disabled}>
+            <div className="relative">
+                <ListboxButton aria-label={label} className="flex min-h-12 w-full items-center justify-between rounded-lg border border-base-300 bg-base-100 px-4 text-left text-sm font-medium outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-base-200 disabled:text-base-content/45">
+                    <span className={selectedOption ? '' : 'text-base-content/45'}>{selectedOption?.label ?? placeholder}</span>
+                    <svg aria-hidden="true" viewBox="0 0 20 20" className="size-4 shrink-0 fill-current text-base-content/60"><path d="m5.25 7.5 4.75 4.75 4.75-4.75H5.25Z" /></svg>
+                </ListboxButton>
+                <ListboxOptions className="absolute z-30 mt-1 max-h-64 w-full overflow-auto rounded-lg border border-base-300 bg-base-100 p-1 shadow-lg outline-none">
+                    {options.map((option) => (
+                        <ListboxOption key={option.value} value={option.value} className="cursor-pointer rounded-md px-3 py-2 text-sm outline-none data-[focus]:bg-red-50 data-[focus]:text-red-800 data-[selected]:bg-primary data-[selected]:text-primary-content">
+                            {option.label}
+                        </ListboxOption>
+                    ))}
+                </ListboxOptions>
+            </div>
+        </Listbox>
+    );
 }
 
 export default function Index({ rooms, flash }: BookingPageProps) {
@@ -237,7 +274,6 @@ export default function Index({ rooms, flash }: BookingPageProps) {
                                 <p className="mt-1 text-sm text-base-content/65">Select a date to see the times that remain available.</p>
                             </div>
                             <div className="flex items-center gap-2">
-                                <button type="button" onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1))} className="btn btn-sm btn-outline" aria-label="Previous month">‹</button>
                                 <button type="button" onClick={() => setVisibleMonth(new Date(today.getFullYear(), today.getMonth(), 1))} className="btn btn-sm btn-outline">Today</button>
                                 <button type="button" onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1))} className="btn btn-sm btn-outline" aria-label="Next month">›</button>
                             </div>
@@ -267,10 +303,8 @@ export default function Index({ rooms, flash }: BookingPageProps) {
                             <h2 className="text-xl font-bold">{formatDate(new Date(`${selectedDate}T00:00:00`))}</h2>
                             <div className="mt-3 flex items-center gap-4 text-xs font-semibold text-slate-600" aria-label="Time availability legend"><span className="inline-flex items-center gap-1.5"><span className="size-3 rounded border border-slate-300 bg-white" />Available</span><span className="inline-flex items-center gap-1.5"><span className="relative size-3 overflow-hidden rounded" style={{ backgroundColor: '#fee2e2', borderColor: '#fecaca' }}><svg aria-hidden="true" viewBox="0 0 12 12" preserveAspectRatio="none" className="absolute inset-0 size-full text-error"><line x1="0" y1="12" x2="12" y2="0" stroke="currentColor" strokeWidth="2" /></svg></span>Unavailable</span></div>
                             <div className="mt-5">
-                                <label htmlFor="room" className="text-sm font-semibold text-slate-700">Room</label>
-                                <select id="room" value={data.room_id} onChange={(event) => { setData('room_id', Number(event.target.value)); setData('start_time', ''); setData('end_time', ''); setIsRangeSelectionComplete(false); }} className="select select-bordered mt-2 w-full focus:select-primary">
-                                    {rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
-                                </select>
+                                <p className="text-sm font-semibold text-slate-700">Room</p>
+                                <div className="mt-2"><Dropdown value={String(data.room_id)} options={rooms.map((room) => ({ value: String(room.id), label: room.name }))} placeholder="Select a room" label="Room" onChange={(roomId) => { setData('room_id', Number(roomId)); setData('start_time', ''); setData('end_time', ''); setIsRangeSelectionComplete(false); }} /></div>
                             </div>
                             <div className="mt-5">
                                 <p className="text-sm font-semibold text-slate-700">Quick select</p>
@@ -293,7 +327,7 @@ export default function Index({ rooms, flash }: BookingPageProps) {
                                                 && slot.end <= data.end_time;
                                             const isRangeEnd = data.end_time === slot.start;
 
-                                            return <button key={slot.start} type="button" disabled={!isSelectable} onClick={() => chooseTimeRange(slot)} className={`btn btn-sm relative overflow-hidden ${!isSelectable ? 'opacity-100 disabled:opacity-100' : isInSelectedRange || isRangeEnd ? 'btn-primary' : 'btn-outline'}`} style={!isSelectable ? { backgroundColor: '#fee2e2', borderColor: '#fecaca', color: '#b91c1c', opacity: 1 } : undefined} aria-label={`${formatTime(slot.start)}${isSelectable ? ', selectable' : ', unavailable'}`}><span className="relative z-10">{formatTime(slot.start)}</span>{!isSelectable && <svg aria-hidden="true" viewBox="0 0 100 40" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 size-full text-error"><line x1="0" y1="40" x2="100" y2="0" stroke="currentColor" strokeWidth="3" /></svg>}</button>;
+                                            return <button key={slot.start} type="button" disabled={!isSelectable} onClick={() => chooseTimeRange(slot)} className={`btn btn-sm relative overflow-hidden ${!isSelectable ? 'opacity-100 disabled:opacity-100' : isInSelectedRange || isRangeEnd ? 'btn-primary' : 'btn-outline hover:border-red-300 hover:bg-red-50 hover:text-red-800'}`} style={!isSelectable ? { backgroundColor: '#fee2e2', borderColor: '#fecaca', color: '#b91c1c', opacity: 1 } : undefined} aria-label={`${formatTime(slot.start)}${isSelectable ? ', selectable' : ', unavailable'}`}><span className="relative z-10">{formatTime(slot.start)}</span>{!isSelectable && <svg aria-hidden="true" viewBox="0 0 100 40" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 size-full text-error"><line x1="0" y1="40" x2="100" y2="0" stroke="currentColor" strokeWidth="3" /></svg>}</button>;
                                         })}
                                     </div>
                                 )}
@@ -305,13 +339,13 @@ export default function Index({ rooms, flash }: BookingPageProps) {
                             <p className="mt-1 text-sm text-slate-600">Your details and purpose are stored privately.</p>
                             <div className="mt-4 space-y-3">
                                 <div className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700"><span className="font-semibold">Date:</span> {formatDate(new Date(`${selectedDate}T00:00:00`))}</div>
-                                <Field label="Time" error={errors.start_time ?? errors.end_time}><div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2"><select value={data.start_time} onChange={(event) => { const startTime = event.target.value; const startSlot = availableSlots.find((slot) => slot.start === startTime); setData('start_time', startTime); setData('end_time', startSlot?.end ?? ''); setIsRangeSelectionComplete(false); }} className="select select-bordered w-full focus:select-primary" aria-label="Start time"><option value="">From</option>{availableSlots.map((slot) => <option key={slot.start} value={slot.start}>{formatTime(slot.start)}</option>)}</select><span className="text-sm text-base-content/60">to</span><select value={data.end_time} onChange={(event) => { setData('end_time', event.target.value); setIsRangeSelectionComplete(true); }} disabled={data.start_time === ''} className="select select-bordered w-full focus:select-primary disabled:bg-base-200" aria-label="End time"><option value="">To</option>{availableEndTimes.map((endTime) => <option key={endTime} value={endTime}>{formatTime(endTime)}</option>)}</select></div><span className="mt-2 block text-xs font-normal text-slate-500">Use the time range picker or these dropdowns to select uninterrupted available slots.</span></Field>
+                                <Field label="Time" error={errors.start_time ?? errors.end_time}><div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2"><Dropdown value={data.start_time} options={availableSlots.map((slot) => ({ value: slot.start, label: formatTime(slot.start) }))} placeholder="From" label="Start time" onChange={(startTime) => { const startSlot = availableSlots.find((slot) => slot.start === startTime); setData('start_time', startTime); setData('end_time', startSlot?.end ?? ''); setIsRangeSelectionComplete(false); }} /><span className="text-sm text-base-content/60">to</span><Dropdown value={data.end_time} options={availableEndTimes.map((endTime) => ({ value: endTime, label: formatTime(endTime) }))} placeholder="To" label="End time" disabled={data.start_time === ''} onChange={(endTime) => { setData('end_time', endTime); setIsRangeSelectionComplete(true); }} /></div><span className="mt-2 block text-xs font-normal text-slate-500">Use Quick select or these dropdowns to select uninterrupted available slots.</span></Field>
                                 <Field label="Your name" error={errors.visitor_name}><input value={data.visitor_name} onChange={(event) => setData('visitor_name', event.target.value)} className="field" autoComplete="name" /></Field>
                                 <Field label="Email address" error={errors.visitor_email}><input type="email" value={data.visitor_email} onChange={(event) => setData('visitor_email', event.target.value)} className="field" autoComplete="email" required /></Field>
                                 <Field label="Mobile number (optional)" error={errors.visitor_mobile}><input type="tel" value={data.visitor_mobile} onChange={(event) => setData('visitor_mobile', event.target.value)} className="field" autoComplete="tel" /></Field>
                                 <Field label="No. of attendees" error={errors.attendee_count}><input type="number" min="1" max="500" value={data.attendee_count} onChange={(event) => setData('attendee_count', Number(event.target.value))} className="field" /></Field>
-                                <Field label="Refreshments needed?" error={errors.refreshment_preference}><select value={data.refreshment_preference} onChange={(event) => setData('refreshment_preference', event.target.value)} className="field"><option value="" disabled>Select an option</option><option value="yes">Yes</option><option value="no">No</option></select></Field>
-                                <Field label="Purpose (private)" error={errors.private_purpose}><textarea value={data.private_purpose} onChange={(event) => setData('private_purpose', event.target.value)} className="field min-h-20 resize-y" maxLength={500} /></Field>
+                                <Field label="Refreshments needed?" error={errors.refreshment_preference}><Dropdown value={data.refreshment_preference} options={[{ value: 'yes', label: 'Yes' }, { value: 'no', label: 'No' }]} placeholder="Select an option" label="Refreshments needed" onChange={(refreshmentPreference) => setData('refreshment_preference', refreshmentPreference)} /></Field>
+                                <Field label="Purpose (private)" error={errors.private_purpose}><textarea value={data.private_purpose} onChange={(event) => setData('private_purpose', event.target.value)} className="min-h-28 w-full resize-y rounded-xl border border-base-300 bg-slate-50 px-4 py-3 text-sm text-base-content outline-none transition placeholder:text-base-content/40 focus:border-primary focus:bg-base-100 focus:ring-2 focus:ring-primary/20" placeholder="Briefly describe the meeting purpose" maxLength={500} /></Field>
                                 <button type="submit" disabled={processing || !data.end_time} className="btn btn-primary w-full">{processing ? 'Booking…' : 'Book a slot'}</button>
                             </div>
                     </div></form>

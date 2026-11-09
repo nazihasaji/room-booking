@@ -42,12 +42,10 @@ export default function Index({ users }: PageProps<{ users: Paginator }>) {
     }
 
     return (
-        <AuthenticatedLayout
-            header={<div><p className="text-sm font-semibold text-primary">ADMINISTRATION</p><h2 className="text-2xl font-bold">Manage accounts</h2></div>}
-        >
+        <AuthenticatedLayout>
             <Head title="Manage accounts" />
 
-            <div className="py-10">
+            <div className="py-8">
                 <div className="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
                     {flash.success && <div className="alert border-emerald-200 bg-emerald-100 text-emerald-800"><span>{flash.success}</span></div>}
                     {flash.error && <div className="alert alert-error"><span>{flash.error}</span></div>}
@@ -55,7 +53,7 @@ export default function Index({ users }: PageProps<{ users: Paginator }>) {
                     <section className="overflow-hidden rounded-2xl border border-base-300 bg-base-100 shadow-sm">
                         <header className="flex flex-col gap-4 border-b border-base-300 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                             <div><h3 className="text-xl font-bold">Accounts</h3><p className="mt-1 text-sm text-base-content/65">Create and manage staff access to Room Reserve.</p></div>
-                            <button type="button" onClick={() => setIsCreating(true)} className="btn btn-primary">Add account</button>
+                            <button type="button" onClick={() => setIsCreating(true)} className="btn border border-sky-300 bg-sky-50 text-sky-800 hover:border-sky-400 hover:bg-sky-100 hover:text-sky-900">Add account</button>
                         </header>
 
                         <div className="overflow-x-auto">
@@ -65,9 +63,9 @@ export default function Index({ users }: PageProps<{ users: Paginator }>) {
                                     {users.data.map((user) => <tr key={user.id}>
                                         <td><div className="font-semibold">{user.name}{user.id === currentUser.id && <span className="ml-2 text-xs font-normal text-base-content/60">(you)</span>}</div></td>
                                         <td>{user.email}</td>
-                                        <td>{user.is_super_admin ? <span className="badge badge-primary">Super administrator</span> : <span className="badge badge-ghost">Administrator</span>}</td>
+                                        <td>{user.is_super_admin ? <span className="badge border-red-700 bg-red-700 text-white">Super administrator</span> : <span className="badge border-sky-200 bg-sky-50 text-sky-800">Administrator</span>}</td>
                                         <td>{new Intl.DateTimeFormat('en-MY', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(user.created_at))}</td>
-                                        <td className="text-right"><div className="flex justify-end gap-2"><button type="button" onClick={() => setSelectedUser(user)} className="btn btn-sm btn-ghost">Edit</button><button type="button" onClick={() => deleteUser(user)} disabled={user.id === currentUser.id} title={user.id === currentUser.id ? 'Use Profile to delete your own account.' : undefined} className="btn btn-error btn-outline btn-sm">Delete</button></div></td>
+                                        <td className="text-right"><div className="flex justify-end gap-2"><button type="button" onClick={() => setSelectedUser(user)} className="btn btn-sm border border-sky-300 bg-white text-sky-800 hover:border-sky-400 hover:bg-sky-50 hover:text-sky-900">Edit</button><button type="button" onClick={() => deleteUser(user)} disabled={user.id === currentUser.id} title={user.id === currentUser.id ? 'Use Profile to delete your own account.' : undefined} className="btn btn-error btn-outline btn-sm disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-400 disabled:opacity-100">Delete</button></div></td>
                                     </tr>)}
                                 </tbody>
                             </table>
@@ -120,7 +118,7 @@ function AccountForm({ user, currentUserId, onClose }: { user: ManagedUser | nul
                     {!isEditing && <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-4"><input type="checkbox" checked={data.send_invitation} onChange={(event) => setData('send_invitation', event.target.checked)} className="checkbox checkbox-primary mt-0.5" /><span><span className="block font-semibold">Send invitation email</span><span className="mt-1 block text-sm text-base-content/65">Sends a secure link so they can set their own password.</span></span></label>}
                     <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-base-300 p-4"><input type="checkbox" checked={data.is_super_admin} disabled={isCurrentUser} onChange={(event) => setData('is_super_admin', event.target.checked)} className="checkbox checkbox-primary mt-0.5" /><span><span className="block font-semibold">Super administrator</span><span className="mt-1 block text-sm text-base-content/65">Can manage bookings and accounts. Administrators receive new-booking notifications.</span>{isCurrentUser && <span className="mt-1 block text-sm text-base-content/65">You cannot remove your own super-admin access.</span>}</span></label>
                 </div>
-                <footer className="flex justify-end gap-2 border-t border-base-300 px-5 py-4 sm:px-6"><button type="button" onClick={onClose} className="btn btn-ghost btn-sm">Cancel</button><button type="submit" disabled={processing} className="btn btn-primary btn-sm">{processing ? 'Saving…' : isEditing ? 'Save changes' : 'Create account'}</button></footer>
+                <footer className="flex justify-end gap-2 border-t border-base-300 px-5 py-4 sm:px-6"><button type="button" onClick={onClose} className="btn btn-ghost btn-sm">Cancel</button><button type="submit" disabled={processing} className="btn btn-sm border border-sky-300 bg-sky-50 text-sky-800 hover:border-sky-400 hover:bg-sky-100 hover:text-sky-900 disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400">{processing ? 'Saving…' : isEditing ? 'Save changes' : 'Create account'}</button></footer>
             </form>
         </div>
     );

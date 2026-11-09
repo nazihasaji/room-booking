@@ -25,15 +25,14 @@ class BookingController extends Controller
     {
         $filters = $request->validate([
             'date' => ['nullable', 'date_format:Y-m-d'],
-            'room_id' => ['nullable', 'integer', 'exists:rooms,id'],
-            'status' => ['nullable', 'string', 'max:50'],
+            'room_ids' => ['nullable', 'array'],
+            'room_ids.*' => ['integer', 'distinct', 'exists:rooms,id'],
         ]);
 
         $bookingQuery = Booking::query()
             ->with('room:id,name')
             ->when($filters['date'] ?? null, fn ($query, string $date) => $query->whereDate('start_at', $date))
-            ->when($filters['room_id'] ?? null, fn ($query, int $roomId) => $query->where('room_id', $roomId))
-            ->when($filters['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
+            ->when($filters['room_ids'] ?? [], fn ($query, array $roomIds) => $query->whereIn('room_id', $roomIds))
             ->orderBy('start_at')
             ->orderBy('id');
 
@@ -51,7 +50,6 @@ class BookingController extends Controller
             'visitor_mobile' => $booking->visitor_mobile,
             'attendee_count' => $booking->attendee_count,
             'refreshment_preference' => $booking->refreshment_preference,
-            'private_purpose' => $booking->private_purpose,
             'status' => $booking->status,
             'created_at' => $booking->created_at->toIso8601String(),
         ];
@@ -71,15 +69,11 @@ class BookingController extends Controller
                 ->values(),
             'filters' => [
                 'date' => $filters['date'] ?? null,
-                'room_id' => isset($filters['room_id']) ? (string) $filters['room_id'] : '',
-                'status' => $filters['status'] ?? '',
+                'room_ids' => collect($filters['room_ids'] ?? [])
+                    ->map(fn (int|string $roomId): string => (string) $roomId)
+                    ->values()
+                    ->all(),
             ],
-            'statuses' => Booking::query()
-                ->select('status')
-                ->distinct()
-                ->orderBy('status')
-                ->pluck('status')
-                ->values(),
         ]);
     }
 
@@ -174,7 +168,6 @@ class BookingController extends Controller
             'visitor_mobile' => $data['visitor_mobile'] ?? null,
             'attendee_count' => $data['attendee_count'],
             'refreshment_preference' => $data['refreshment_preference'],
-            'private_purpose' => $data['private_purpose'] ?? null,
             'status' => $booking?->status ?? 'confirmed',
         ];
     }

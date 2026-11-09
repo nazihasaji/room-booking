@@ -126,7 +126,12 @@ export default function UpdatePasswordForm({
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
+                    <PrimaryButton
+                        className="!border-red-200 !bg-red-100 !text-red-700 hover:!border-red-300 hover:!bg-red-200"
+                        disabled={processing}
+                    >
+                        Save
+                    </PrimaryButton>
 
                     <Transition
                         show={recentlySuccessful}

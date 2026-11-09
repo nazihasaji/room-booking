@@ -46,7 +46,6 @@ class ManageBookingRequest extends FormRequest
             'visitor_mobile' => ['nullable', 'string', 'regex:/^[0-9+() -]{7,30}$/'],
             'attendee_count' => ['required', 'integer', 'min:1', 'max:500'],
             'refreshment_preference' => ['required', Rule::in(['yes', 'no'])],
-            'private_purpose' => ['nullable', 'string', 'max:500'],
             'change_reason' => ['nullable', 'string', 'max:500'],
         ];
     }

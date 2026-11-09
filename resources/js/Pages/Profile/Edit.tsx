@@ -10,14 +10,10 @@ export default function Edit({
     status,
 }: PageProps<{ mustVerifyEmail: boolean; status?: string }>) {
     return (
-        <AuthenticatedLayout
-            header={
-                <div><p className="text-sm font-semibold text-primary">ACCOUNT</p><h2 className="text-2xl font-bold">Profile</h2></div>
-            }
-        >
+        <AuthenticatedLayout>
             <Head title="Profile" />
 
-            <div className="py-10">
+            <div className="py-8">
                 <div className="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
                     <div className="card border border-base-300 bg-base-100 shadow-sm"><div className="card-body">
                         <UpdateProfileInformationForm
