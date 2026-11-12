@@ -69,7 +69,7 @@ export default function Index({ users }: PageProps<{ users: Paginator }>) {
                                     <h4 className="break-words font-semibold">{user.name}{user.id === currentUser.id && <span className="ml-2 text-xs font-normal text-base-content/60">(you)</span>}</h4>
                                     <p className="mt-1 break-all text-sm text-base-content/65">{user.email}</p>
                                 </div>
-                                <dl className="grid grid-cols-2 gap-4 text-sm">
+                                <dl className="grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-4 text-sm">
                                     <div className="space-y-1"><dt className="text-xs font-semibold uppercase tracking-wide text-base-content/55">Access</dt><dd><AccountAccessBadge isSuperAdmin={user.is_super_admin} /></dd></div>
                                     <div className="space-y-1"><dt className="text-xs font-semibold uppercase tracking-wide text-base-content/55">Created</dt><dd className="font-medium">{formatCreatedDate(user.created_at)}</dd></div>
                                 </dl>

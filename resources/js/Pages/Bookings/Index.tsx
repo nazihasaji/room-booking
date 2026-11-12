@@ -92,7 +92,7 @@ function Dropdown({ value, options, placeholder, label, disabled = false, onChan
                     <span className={selectedOption ? '' : 'text-base-content/45'}>{selectedOption?.label ?? placeholder}</span>
                     <svg aria-hidden="true" viewBox="0 0 20 20" className="size-4 shrink-0 fill-current text-base-content/60"><path d="m5.25 7.5 4.75 4.75 4.75-4.75H5.25Z" /></svg>
                 </ListboxButton>
-                <ListboxOptions className="absolute z-30 mt-1 max-h-64 w-full overflow-auto rounded-lg border border-base-300 bg-base-100 p-1 shadow-lg outline-none">
+                <ListboxOptions modal={false} className="absolute z-30 mt-1 max-h-64 w-full overflow-auto rounded-lg border border-base-300 bg-base-100 p-1 shadow-lg outline-none">
                     {options.map((option) => (
                         <ListboxOption key={option.value} value={option.value} className="cursor-pointer rounded-md px-3 py-2 text-sm outline-none data-[focus]:bg-red-50 data-[focus]:text-red-800 data-[selected]:bg-primary data-[selected]:text-primary-content">
                             {option.label}
@@ -368,5 +368,5 @@ export default function Index({ rooms, flash }: BookingPageProps) {
 }
 
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
-    return <label className="block text-sm font-semibold"><span className="label-text">{label}</span><div className="mt-1">{children}</div>{error && <span className="mt-1 block text-sm font-normal text-error">{error}</span>}</label>;
+    return <fieldset className="m-0 min-w-0 border-0 p-0 text-sm font-semibold"><legend className="label-text">{label}</legend><div className="mt-1">{children}</div>{error && <span className="mt-1 block text-sm font-normal text-error">{error}</span>}</fieldset>;
 }
