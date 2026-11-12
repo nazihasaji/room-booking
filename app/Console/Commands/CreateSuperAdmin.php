@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 #[Signature('room-booking:create-super-admin')]
 #[Description('Create the first local super-admin account')]
@@ -32,7 +33,7 @@ class CreateSuperAdmin extends Command
         ], [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', 'confirmed', Password::defaults()],
         ]);
 
         if ($validator->fails()) {

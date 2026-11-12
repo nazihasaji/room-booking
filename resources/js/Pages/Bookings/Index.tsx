@@ -161,6 +161,8 @@ export default function Index({ rooms, flash }: BookingPageProps) {
         (room) => room.id === data.room_id,
     );
     const availableSlots = selectedRoom?.time_slots ?? [];
+    const isShowingCurrentMonth = visibleMonth.getFullYear() === today.getFullYear()
+        && visibleMonth.getMonth() === today.getMonth();
     const availableEndTimes = data.start_time === ''
         ? []
         : bookableTimeSlots
@@ -207,6 +209,14 @@ export default function Index({ rooms, flash }: BookingPageProps) {
     }
 
     function chooseTimeRange(slot: TimeSlot): void {
+        if (data.start_time === slot.start) {
+            setData('start_time', '');
+            setData('end_time', '');
+            setIsRangeSelectionComplete(false);
+
+            return;
+        }
+
         if (isRangeSelectionComplete) {
             setData('start_time', slot.start);
             setData('end_time', slot.end);
@@ -274,6 +284,7 @@ export default function Index({ rooms, flash }: BookingPageProps) {
                                 <p className="mt-1 text-sm text-base-content/65">Select a date to see the times that remain available.</p>
                             </div>
                             <div className="flex items-center gap-2">
+                                <button type="button" disabled={isShowingCurrentMonth} onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1))} className="btn btn-sm btn-outline disabled:cursor-not-allowed" aria-label="Previous month">‹</button>
                                 <button type="button" onClick={() => setVisibleMonth(new Date(today.getFullYear(), today.getMonth(), 1))} className="btn btn-sm btn-outline">Today</button>
                                 <button type="button" onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1))} className="btn btn-sm btn-outline" aria-label="Next month">›</button>
                             </div>
@@ -301,14 +312,14 @@ export default function Index({ rooms, flash }: BookingPageProps) {
 
                     <section className="card border border-base-300 bg-base-100 shadow-sm"><div className="card-body p-5">
                             <h2 className="text-xl font-bold">{formatDate(new Date(`${selectedDate}T00:00:00`))}</h2>
-                            <div className="mt-3 flex items-center gap-4 text-xs font-semibold text-slate-600" aria-label="Time availability legend"><span className="inline-flex items-center gap-1.5"><span className="size-3 rounded border border-slate-300 bg-white" />Available</span><span className="inline-flex items-center gap-1.5"><span className="relative size-3 overflow-hidden rounded" style={{ backgroundColor: '#fee2e2', borderColor: '#fecaca' }}><svg aria-hidden="true" viewBox="0 0 12 12" preserveAspectRatio="none" className="absolute inset-0 size-full text-error"><line x1="0" y1="12" x2="12" y2="0" stroke="currentColor" strokeWidth="2" /></svg></span>Unavailable</span></div>
+                            <div className="mt-3 flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-600" aria-label="Time availability legend"><span className="inline-flex items-center gap-1.5"><span className="size-3 rounded border border-slate-300 bg-white" />Available</span><span className="inline-flex items-center gap-1.5"><span className="size-3 rounded bg-primary" />Selected</span><span className="inline-flex items-center gap-1.5"><span className="relative size-3 overflow-hidden rounded" style={{ backgroundColor: '#fee2e2', borderColor: '#fecaca' }}><svg aria-hidden="true" viewBox="0 0 12 12" preserveAspectRatio="none" className="absolute inset-0 size-full text-error"><line x1="0" y1="12" x2="12" y2="0" stroke="currentColor" strokeWidth="2" /></svg></span>Unavailable</span></div>
                             <div className="mt-5">
                                 <p className="text-sm font-semibold text-slate-700">Room</p>
                                 <div className="mt-2"><Dropdown value={String(data.room_id)} options={rooms.map((room) => ({ value: String(room.id), label: room.name }))} placeholder="Select a room" label="Room" onChange={(roomId) => { setData('room_id', Number(roomId)); setData('start_time', ''); setData('end_time', ''); setIsRangeSelectionComplete(false); }} /></div>
                             </div>
                             <div className="mt-5">
                                 <p className="text-sm font-semibold text-slate-700">Quick select</p>
-                                <p className="mt-1 text-xs text-slate-500">Choose a start time, then click the time you want the meeting to end.</p>
+                                <p className="mt-1 text-xs text-slate-500">Choose a start time, then click the time you want the meeting to end. Click the selected start time again to clear it.</p>
                                 {isLoadingAvailability ? (
                                     <div className="mt-3 grid grid-cols-2 gap-2 animate-pulse"><div className="h-10 rounded-lg bg-slate-100" /><div className="h-10 rounded-lg bg-slate-100" /></div>
                                 ) : availabilityError ? (
@@ -321,13 +332,14 @@ export default function Index({ rooms, flash }: BookingPageProps) {
                                             );
                                             const canEndRange = canEndRangeAt(slot.start);
                                             const isSelectable = isAvailable || canEndRange;
+                                            const isSelectedStart = data.start_time === slot.start;
                                             const isInSelectedRange = data.start_time !== ''
                                                 && data.end_time !== ''
                                                 && slot.start >= data.start_time
                                                 && slot.end <= data.end_time;
                                             const isRangeEnd = data.end_time === slot.start;
 
-                                            return <button key={slot.start} type="button" disabled={!isSelectable} onClick={() => chooseTimeRange(slot)} className={`btn btn-sm relative overflow-hidden ${!isSelectable ? 'opacity-100 disabled:opacity-100' : isInSelectedRange || isRangeEnd ? 'btn-primary' : 'btn-outline hover:border-red-300 hover:bg-red-50 hover:text-red-800'}`} style={!isSelectable ? { backgroundColor: '#fee2e2', borderColor: '#fecaca', color: '#b91c1c', opacity: 1 } : undefined} aria-label={`${formatTime(slot.start)}${isSelectable ? ', selectable' : ', unavailable'}`}><span className="relative z-10">{formatTime(slot.start)}</span>{!isSelectable && <svg aria-hidden="true" viewBox="0 0 100 40" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 size-full text-error"><line x1="0" y1="40" x2="100" y2="0" stroke="currentColor" strokeWidth="3" /></svg>}</button>;
+                                            return <button key={slot.start} type="button" disabled={!isSelectable} onClick={() => chooseTimeRange(slot)} className={`btn btn-sm relative overflow-hidden ${!isSelectable ? 'opacity-100 disabled:opacity-100' : isInSelectedRange || isRangeEnd ? 'btn-primary' : 'btn-outline hover:border-red-300 hover:bg-red-50 hover:text-red-800'}`} style={!isSelectable ? { backgroundColor: '#fee2e2', borderColor: '#fecaca', color: '#b91c1c', opacity: 1 } : undefined} aria-label={`${formatTime(slot.start)}${!isSelectable ? ', unavailable' : isSelectedStart ? ', selected; click to clear' : ', selectable'}`}><span className="relative z-10">{formatTime(slot.start)}</span>{!isSelectable && <svg aria-hidden="true" viewBox="0 0 100 40" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 size-full text-error"><line x1="0" y1="40" x2="100" y2="0" stroke="currentColor" strokeWidth="3" /></svg>}</button>;
                                         })}
                                     </div>
                                 )}
@@ -345,7 +357,7 @@ export default function Index({ rooms, flash }: BookingPageProps) {
                                 <Field label="Mobile number (optional)" error={errors.visitor_mobile}><input type="tel" value={data.visitor_mobile} onChange={(event) => setData('visitor_mobile', event.target.value)} className="field" autoComplete="tel" /></Field>
                                 <Field label="No. of attendees" error={errors.attendee_count}><input type="number" min="1" max="500" value={data.attendee_count} onChange={(event) => setData('attendee_count', Number(event.target.value))} className="field" /></Field>
                                 <Field label="Refreshments needed?" error={errors.refreshment_preference}><Dropdown value={data.refreshment_preference} options={[{ value: 'yes', label: 'Yes' }, { value: 'no', label: 'No' }]} placeholder="Select an option" label="Refreshments needed" onChange={(refreshmentPreference) => setData('refreshment_preference', refreshmentPreference)} /></Field>
-                                <Field label="Purpose (private)" error={errors.private_purpose}><textarea value={data.private_purpose} onChange={(event) => setData('private_purpose', event.target.value)} className="min-h-28 w-full resize-y rounded-xl border border-base-300 bg-slate-50 px-4 py-3 text-sm text-base-content outline-none transition placeholder:text-base-content/40 focus:border-primary focus:bg-base-100 focus:ring-2 focus:ring-primary/20" placeholder="Briefly describe the meeting purpose" maxLength={500} /></Field>
+                                <Field label="Purpose (optional)" error={errors.private_purpose}><textarea value={data.private_purpose} onChange={(event) => setData('private_purpose', event.target.value)} className="min-h-28 w-full resize-y rounded-xl border border-base-300 bg-slate-50 px-4 py-3 text-sm text-base-content outline-none transition placeholder:text-base-content/40 focus:border-primary focus:bg-base-100 focus:ring-2 focus:ring-primary/20" placeholder="Briefly describe the meeting purpose" maxLength={500} /></Field>
                                 <button type="submit" disabled={processing || !data.end_time} className="btn btn-primary w-full">{processing ? 'Booking…' : 'Book a slot'}</button>
                             </div>
                     </div></form>

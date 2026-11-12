@@ -4,7 +4,39 @@ import {
     Transition,
     TransitionChild,
 } from '@headlessui/react';
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, useEffect } from 'react';
+
+export function useModalScrollLock(isLocked: boolean): void {
+    useEffect(() => {
+        if (!isLocked) {
+            return;
+        }
+
+        const scrollY = window.scrollY;
+        const originalStyles = {
+            left: document.body.style.left,
+            overflow: document.body.style.overflow,
+            position: document.body.style.position,
+            right: document.body.style.right,
+            top: document.body.style.top,
+            width: document.body.style.width,
+        };
+
+        Object.assign(document.body.style, {
+            left: '0',
+            overflow: 'hidden',
+            position: 'fixed',
+            right: '0',
+            top: `-${scrollY}px`,
+            width: '100%',
+        });
+
+        return () => {
+            Object.assign(document.body.style, originalStyles);
+            window.scrollTo(0, scrollY);
+        };
+    }, [isLocked]);
+}
 
 export default function Modal({
     children,
@@ -18,6 +50,8 @@ export default function Modal({
     closeable?: boolean;
     onClose: CallableFunction;
 }>) {
+    useModalScrollLock(show);
+
     const close = () => {
         if (closeable) {
             onClose();
@@ -37,7 +71,7 @@ export default function Modal({
             <Dialog
                 as="div"
                 id="modal"
-                className="fixed inset-0 z-50 flex transform items-center overflow-y-auto px-4 py-6 transition-all sm:px-0"
+                className="fixed inset-0 z-50 flex transform items-center overflow-y-auto overscroll-contain px-4 py-6 transition-all sm:px-0"
                 onClose={close}
             >
                 <TransitionChild
@@ -60,7 +94,7 @@ export default function Modal({
                     leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 >
                     <DialogPanel
-                        className={`mb-6 transform overflow-hidden rounded-lg bg-white shadow-xl transition-all sm:mx-auto sm:w-full ${maxWidthClass}`}
+                        className={`mb-6 max-h-[calc(100dvh-3rem)] transform overflow-y-auto overscroll-contain rounded-lg bg-white shadow-xl transition-all sm:mx-auto sm:w-full ${maxWidthClass}`}
                     >
                         {children}
                     </DialogPanel>

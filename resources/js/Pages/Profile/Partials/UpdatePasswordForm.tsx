@@ -56,8 +56,8 @@ export default function UpdatePasswordForm({
                 </h2>
 
                 <p className="mt-1 text-sm text-base-content/65">
-                    Ensure your account is using a long, random password to stay
-                    secure.
+                    Use at least 8 characters with uppercase and lowercase
+                    letters, a number, and a symbol.
                 </p>
             </header>
 
@@ -125,9 +125,9 @@ export default function UpdatePasswordForm({
                     />
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
                     <PrimaryButton
-                        className="!border-red-200 !bg-red-100 !text-red-700 hover:!border-red-300 hover:!bg-red-200"
+                        className="w-full !border-red-200 !bg-red-100 !text-red-700 hover:!border-red-300 hover:!bg-red-200 sm:w-auto"
                         disabled={processing}
                     >
                         Save

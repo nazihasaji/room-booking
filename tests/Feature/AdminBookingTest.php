@@ -92,6 +92,26 @@ class AdminBookingTest extends TestCase
                 ->has('calendarBookings', 11));
     }
 
+    public function test_booking_management_lists_newest_bookings_first(): void
+    {
+        $room = Room::factory()->create();
+        $olderBooking = Booking::factory()->for($room)->create([
+            'start_at' => '2026-11-03 09:00:00',
+            'end_at' => '2026-11-03 10:00:00',
+        ]);
+        $newerBooking = Booking::factory()->for($room)->create([
+            'start_at' => '2026-11-04 09:00:00',
+            'end_at' => '2026-11-04 10:00:00',
+        ]);
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('admin.bookings.index'))
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('bookings.data.0.id', $newerBooking->id)
+                ->where('bookings.data.1.id', $olderBooking->id));
+    }
+
     public function test_booking_management_can_filter_by_multiple_rooms(): void
     {
         $firstRoom = Room::factory()->create();
@@ -119,8 +139,8 @@ class AdminBookingTest extends TestCase
                 ->component('Admin/Bookings/Index')
                 ->where('filters.room_ids', [(string) $firstRoom->id, (string) $secondRoom->id])
                 ->has('bookings.data', 2)
-                ->where('bookings.data.0.id', $firstBooking->id)
-                ->where('bookings.data.1.id', $secondBooking->id)
+                ->where('bookings.data.0.id', $secondBooking->id)
+                ->where('bookings.data.1.id', $firstBooking->id)
                 ->has('calendarBookings', 2));
     }
 

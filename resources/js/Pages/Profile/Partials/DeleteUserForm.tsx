@@ -65,7 +65,7 @@ export default function DeleteUserForm({
                 </p>
             </header>
 
-            <PrimaryButton onClick={confirmUserDeletion}>
+            <PrimaryButton onClick={confirmUserDeletion} className="w-full sm:w-auto">
                 Delete Account
             </PrimaryButton>
 

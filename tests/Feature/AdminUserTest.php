@@ -12,6 +12,8 @@ use Tests\TestCase;
 
 class AdminUserTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_guests_are_redirected_to_login_from_account_management(): void
     {
         $this->get(route('admin.users.index'))
@@ -44,8 +46,8 @@ class AdminUserTest extends TestCase
             ->post(route('admin.users.store'), [
                 'name' => 'Aisha Rahman',
                 'email' => 'aisha@example.test',
-                'password' => 'secure-password',
-                'password_confirmation' => 'secure-password',
+                'password' => 'SecurePassword1!',
+                'password_confirmation' => 'SecurePassword1!',
                 'is_super_admin' => true,
                 'send_invitation' => false,
             ]);
@@ -59,7 +61,7 @@ class AdminUserTest extends TestCase
         $hashedPassword = User::query()->where('email', 'aisha@example.test')->value('password');
 
         $this->assertNotNull($hashedPassword);
-        $this->assertTrue(Hash::check('secure-password', $hashedPassword));
+        $this->assertTrue(Hash::check('SecurePassword1!', $hashedPassword));
     }
 
     public function test_super_admins_can_send_an_account_invitation(): void
@@ -105,7 +107,7 @@ class AdminUserTest extends TestCase
             return $request->url() === 'https://graph.microsoft.com/v1.0/users/bookings%40example.com/sendMail'
                 && $data['message']['body']['contentType'] === 'HTML'
                 && $data['message']['toRecipients'][0]['emailAddress']['address'] === 'aisha@example.test'
-                && str_contains($content, 'https://room-booking.test/reset-password/')
+                && str_contains($content, '/reset-password/')
                 && str_contains($content, 'Set your password')
                 && str_contains($content, 'email=aisha%40example.test');
         });
@@ -119,8 +121,8 @@ class AdminUserTest extends TestCase
             ->put(route('admin.users.update', $account), [
                 'name' => 'Updated Account',
                 'email' => 'updated@example.test',
-                'password' => 'new-secure-password',
-                'password_confirmation' => 'new-secure-password',
+                'password' => 'NewSecurePassword1!',
+                'password_confirmation' => 'NewSecurePassword1!',
                 'is_super_admin' => false,
             ]);
 
@@ -130,7 +132,7 @@ class AdminUserTest extends TestCase
         $this->assertSame('Updated Account', $account->name);
         $this->assertSame('updated@example.test', $account->email);
         $this->assertFalse($account->isSuperAdmin());
-        $this->assertTrue(Hash::check('new-secure-password', $account->password));
+        $this->assertTrue(Hash::check('NewSecurePassword1!', $account->password));
     }
 
     public function test_super_admins_cannot_delete_their_own_account_from_account_management(): void

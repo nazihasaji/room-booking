@@ -33,8 +33,8 @@ class BookingController extends Controller
             ->with('room:id,name')
             ->when($filters['date'] ?? null, fn ($query, string $date) => $query->whereDate('start_at', $date))
             ->when($filters['room_ids'] ?? [], fn ($query, array $roomIds) => $query->whereIn('room_id', $roomIds))
-            ->orderBy('start_at')
-            ->orderBy('id');
+            ->orderByDesc('start_at')
+            ->orderByDesc('id');
 
         $bookingData = fn (Booking $booking): array => [
             'id' => $booking->id,

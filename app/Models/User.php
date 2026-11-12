@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\GraphMailService;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -41,5 +42,16 @@ class User extends Authenticatable
     public function isSuperAdmin(): bool
     {
         return $this->is_super_admin;
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        app(GraphMailService::class)->sendPasswordResetLink(
+            $this,
+            route('password.reset', [
+                'token' => $token,
+                'email' => $this->getEmailForPasswordReset(),
+            ]),
+        );
     }
 }

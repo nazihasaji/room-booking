@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,9 +22,17 @@ class NewPasswordController extends Controller
      */
     public function create(Request $request): Response
     {
+        $email = $request->string('email')->toString();
+        $token = $request->route('token');
+        $user = User::query()->where('email', $email)->first();
+
+        if ($user === null || ! is_string($token) || ! Password::broker()->tokenExists($user, $token)) {
+            return Inertia::render('Auth/ResetLinkExpired');
+        }
+
         return Inertia::render('Auth/ResetPassword', [
-            'email' => $request->email,
-            'token' => $request->route('token'),
+            'email' => $email,
+            'token' => $token,
         ]);
     }
 
@@ -39,6 +48,19 @@ class NewPasswordController extends Controller
             'email' => 'required|email',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
+
+        $user = User::query()
+            ->where('email', $request->string('email')->toString())
+            ->first();
+        $token = $request->string('token')->toString();
+
+        if ($user !== null
+            && Password::broker()->tokenExists($user, $token)
+            && Hash::check($request->string('password')->toString(), $user->password)) {
+            throw ValidationException::withMessages([
+                'password' => ['Your new password must be different from your current password.'],
+            ]);
+        }
 
         // Here we will attempt to reset the user's password. If it is successful we
         // will update the password on an actual user model and persist it to the

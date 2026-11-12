@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reset your Room Reserve password</title>
+</head>
+<body style="margin: 0; padding: 0; background: #f1f5f9; color: #10203a; font-family: Arial, Helvetica, sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width: 100%; background: #f1f5f9;">
+        <tr>
+            <td align="center" style="padding: 56px 20px 40px;">
+                <table role="presentation" width="480" cellspacing="0" cellpadding="0" border="0" style="width: 100%; max-width: 480px;">
+                    <tr>
+                        <td align="center" style="padding: 0 0 28px;">
+                            <p style="margin: 0 0 10px; color: #d10a35; font-size: 12px; font-weight: 700; letter-spacing: 1.8px;">ROOM RESERVE</p>
+                            <h1 style="margin: 0; color: #0b1f3a; font-size: 26px; font-weight: 700; line-height: 1.25;">Reset your password</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border-radius: 16px; background: #ffffff; box-shadow: 0 6px 20px rgba(15, 23, 42, 0.10);">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                <tr>
+                                    <td style="padding: 30px 28px 12px;">
+                                        <p style="margin: 0 0 12px; color: #d10a35; font-size: 12px; font-weight: 700; letter-spacing: 1.2px;">PASSWORD RESET</p>
+                                        <h2 style="margin: 0; color: #0b1f3a; font-size: 25px; font-weight: 700; line-height: 1.25;">Choose a new password</h2>
+                                        <p style="margin: 16px 0 0; color: #40526d; font-size: 16px; line-height: 1.55;">Hi {{ $recipientName }}, we received a request to reset your Room Reserve password.</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 28px;">
+                                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 1px solid #fecaca; border-radius: 12px; background: #fff5f5;">
+                                            <tr>
+                                                <td style="padding: 18px 20px;">
+                                                    <p style="margin: 0; color: #40526d; font-size: 14px; line-height: 1.5;">This link expires in <strong style="color: #0b1f3a;">{{ $expiresInMinutes }} minutes</strong>. If you did not request a password reset, you can safely ignore this email.</p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 16px 28px 8px;">
+                                        <a href="{{ $resetUrl }}" style="display: inline-block; border-radius: 8px; background: #d10a35; color: #ffffff; font-size: 15px; font-weight: 700; line-height: 1; padding: 15px 21px; text-decoration: none;">Reset your password</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 28px 30px;">
+                                        <p style="margin: 0; color: #667892; font-size: 13px; line-height: 1.55;">Button not working? <a href="{{ $resetUrl }}" style="color: #c11233; text-decoration: underline;">Open your password reset link</a>.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="padding: 26px 20px 0; color: #71809a; font-size: 12px; line-height: 1.5;">
+                            <p style="margin: 0;">{{ $senderName }}</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

@@ -75,6 +75,10 @@ export default function Register() {
                         required
                     />
 
+                    <p className="mt-2 text-xs text-base-content/65">
+                        Use at least 8 characters, including an uppercase letter,
+                        lowercase letter, number, and symbol.
+                    </p>
                     <InputError message={errors.password} className="mt-2" />
                 </div>
 

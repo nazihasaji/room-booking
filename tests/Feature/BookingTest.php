@@ -57,7 +57,7 @@ class BookingTest extends TestCase
         $this->assertStringNotContainsString('Private board planning', $response->getContent());
     }
 
-    public function test_a_visitor_can_book_an_available_slot(): void
+    public function test_a_visitor_can_book_an_available_slot_without_a_private_purpose(): void
     {
         $this->travelTo('2026-10-01 08:00:00');
         $room = Room::factory()->create();
@@ -71,7 +71,6 @@ class BookingTest extends TestCase
             'visitor_email' => 'amina@example.com',
             'attendee_count' => 12,
             'refreshment_preference' => 'yes',
-            'private_purpose' => 'Team planning',
         ]);
 
         $response->assertRedirectToRoute('bookings.index');
@@ -84,6 +83,7 @@ class BookingTest extends TestCase
             'visitor_mobile' => null,
             'attendee_count' => 12,
             'refreshment_preference' => 'yes',
+            'private_purpose' => null,
             'status' => 'confirmed',
         ]);
     }

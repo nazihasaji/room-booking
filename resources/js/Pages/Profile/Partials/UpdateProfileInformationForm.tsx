@@ -98,9 +98,9 @@ export default function UpdateProfileInformation({
                     </div>
                 )}
 
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
                     <PrimaryButton
-                        className="!border-red-200 !bg-red-100 !text-red-700 hover:!border-red-300 hover:!bg-red-200"
+                        className="w-full !border-red-200 !bg-red-100 !text-red-700 hover:!border-red-300 hover:!bg-red-200 sm:w-auto"
                         disabled={processing}
                     >
                         Save

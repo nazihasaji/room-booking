@@ -58,6 +58,27 @@ class GraphMailService
         }
     }
 
+    public function sendPasswordResetLink(User $user, string $resetUrl): void
+    {
+        if (! $this->isConfigured()) {
+            return;
+        }
+
+        try {
+            $this->sendMessage(
+                $user->email,
+                'Reset your Room Reserve password',
+                $this->passwordResetBody($user, $resetUrl),
+                'HTML',
+            );
+        } catch (Throwable $exception) {
+            Log::warning('Unable to send Microsoft Graph password reset link.', [
+                'user_id' => $user->id,
+                'exception' => $exception->getMessage(),
+            ]);
+        }
+    }
+
     public function sendAdminBookingNotifications(Booking $booking): void
     {
         if (! $this->isConfigured()) {
@@ -242,6 +263,16 @@ class GraphMailService
         return view('emails.account-invitation', [
             'recipientName' => $user->name,
             'invitationUrl' => $invitationUrl,
+            'expiresInMinutes' => (int) config('auth.passwords.users.expire'),
+            'senderName' => (string) config('services.graph.from_name'),
+        ])->render();
+    }
+
+    private function passwordResetBody(User $user, string $resetUrl): string
+    {
+        return view('emails.password-reset', [
+            'recipientName' => $user->name,
+            'resetUrl' => $resetUrl,
             'expiresInMinutes' => (int) config('auth.passwords.users.expire'),
             'senderName' => (string) config('services.graph.from_name'),
         ])->render();
