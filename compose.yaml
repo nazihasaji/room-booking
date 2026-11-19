@@ -19,7 +19,7 @@ services:
     depends_on:
       - app
     ports:
-      - "${DOCKER_PORT:-8080}:80"
+      - "127.0.0.1:${DOCKER_PORT:-8080}:80"
     restart: unless-stopped
     volumes:
       - ./storage:/var/www/html/storage:ro
